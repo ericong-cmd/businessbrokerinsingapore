@@ -94,6 +94,8 @@ def shell(page):
 <script type="application/ld+json">
 {json.dumps(schema, indent=1, ensure_ascii=False)}
 </script>
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
