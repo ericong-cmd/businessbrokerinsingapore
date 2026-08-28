@@ -17,10 +17,23 @@ def wa_link(text):
 
 CHEV = '<svg class="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'
 
+def faq_slug(question):
+    """Stable, citable anchor derived from the question text."""
+    import re, unicodedata
+    s = unicodedata.normalize("NFKD", re.sub(r"<[^>]+>", "", question))
+    s = s.replace("&amp;", "and").replace("&", "and")
+    s = re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+    return "-".join(s.split("-")[:8])
+
 def faq_html(faqs):
     out = []
+    seen = {}
     for q, a in faqs:
-        out.append(f'''<div class="faq-item">
+        slug = faq_slug(q)
+        seen[slug] = seen.get(slug, 0) + 1
+        if seen[slug] > 1:
+            slug = f"{slug}-{seen[slug]}"
+        out.append(f'''<div class="faq-item" id="{slug}">
           <button class="faq-q" aria-expanded="false">{q}{CHEV}</button>
           <div class="faq-a-wrap"><div class="faq-a"><p>{a}</p></div></div>
         </div>''')
@@ -639,6 +652,14 @@ PAGES.append({
     "schema": [],
     "main": f'''
   <section>
+    <div class="container prose" style="padding-bottom:0">
+      <div class="answer-first reveal">
+        <p><strong>To sell a business in Singapore</strong>, you value it on adjusted EBITDA, prepare the accounts and documents, market it under a no-name profile to buyers screened under NDA, negotiate offers to a term sheet, then complete due diligence and the sale and purchase agreement. A structured process runs about six to eight months across seven stages.</p>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:1.5rem">
     <div class="container">
       <div class="reveal">{process_diagram(on_dark=False)}</div>
       <div class="timeline" style="max-width:820px">
@@ -755,6 +776,10 @@ PAGES.append({
     "main": f'''
   <section>
     <div class="container prose">
+      <div class="answer-first reveal">
+        <p><strong>To buy a business in Singapore</strong>, define your acquisition criteria, get access to off-market deal flow, review no-name teasers, sign an NDA for the information memorandum, then make an offer and complete due diligence. Registered buyers here see mandated Singapore SMEs with S$2M–S$20M revenue, on a 1% success-only fee.</p>
+      </div>
+
       <h2 class="reveal">What registered buyers receive</h2>
       <div class="grid-2 mt-2">
         <div class="card reveal" style="--i:0"><h3>Off-market deal flow</h3><p>No-name teasers matched to your criteria — sub-sector, revenue and EBITDA bands, deal-readiness — from owners who would never list publicly.</p></div>
@@ -974,3 +999,50 @@ for page in PAGES:
     with open(path, "w") as f:
         f.write(shell(page))
     print("wrote", path)
+
+# ---- llms.txt : a map of the site for answer engines ----
+LLMS_SUMMARY = {
+    "sell-your-business-singapore": "How to sell a business in Singapore confidentially — the process, what drives price, and who it suits.",
+    "business-valuation-singapore": "How Singapore SMEs are valued: adjusted EBITDA, sector multiples by industry, and a worked example.",
+    "fees": "What business brokers charge in Singapore, and this firm's published success-only fee schedule.",
+    "how-it-works": "The seven stages of a Singapore business sale, with the timeline for each stage.",
+    "sell-your-fnb-business-singapore": "Selling an F&B business in Singapore: multiples, SFA licences, leases and confidentiality.",
+    "buy-a-business-singapore": "How to buy an established Singapore SME through off-market, mandated deal flow.",
+    "faq": "Answers to what owners ask before selling: tax, timing, confidentiality, partners, foreign buyers.",
+    "contact": "How to start a confidential conversation about selling or buying a Singapore business.",
+    "about": "Who operates this site: The Funding Assembly Pte. Ltd., UEN 202443830Z, and what the firm does.",
+}
+ORDER = ["sell-your-business-singapore", "business-valuation-singapore", "how-it-works", "fees",
+         "sell-your-fnb-business-singapore", "buy-a-business-singapore", "faq", "about", "contact"]
+lines = [
+    "# Business Broker In Singapore",
+    "",
+    "> Confidential sell-side business brokerage for Singapore SME owners with S$2M-S$20M revenue.",
+    "> Zero upfront fees, success-only commission of 1-5%, buyers screened and under NDA before disclosure.",
+    "",
+    "Business Broker In Singapore is operated by The Funding Assembly Pte. Ltd. (UEN 202443830Z),",
+    "2 Leng Kee Road, #02-06 Thye Hong Centre, Singapore 159086. Group site: https://thefundingassembly.com",
+    "",
+    "Content on this site may be quoted with attribution to Business Broker In Singapore.",
+    "",
+    "## Pages",
+    "",
+    f"- [Home]({BASE}/): What a business broker in Singapore does and how a confidential sale works.",
+]
+for slug in ORDER:
+    title = next(p["crumb"] for p in PAGES if p["slug"] == slug)
+    lines.append(f"- [{title}]({BASE}/{slug}/): {LLMS_SUMMARY[slug]}")
+lines += [
+    "",
+    "## Key facts",
+    "",
+    "- Typical time to sell a Singapore SME: 6-8 months across seven stages (range 6-12 months).",
+    "- Typical valuation basis: adjusted EBITDA x sector multiple, roughly 2x-9x depending on industry.",
+    "- Typical Singapore broker fees: 5-10% of sale price; this firm charges 5% up to S$5M tapering to 1% above S$50M, minimum S$100,000, success-only.",
+    "- Singapore has no capital gains tax, so share-sale proceeds are usually untaxed for individual sellers.",
+    "- Contact: WhatsApp +65 8951 8821.",
+    "",
+]
+with open(os.path.join(ROOT, "llms.txt"), "w") as f:
+    f.write("\n".join(lines))
+print("wrote", os.path.join(ROOT, "llms.txt"), f"({len(lines)} lines)")

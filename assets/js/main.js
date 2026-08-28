@@ -71,6 +71,20 @@
     });
   });
 
+  /* Open the FAQ a deep link points at (#question-slug), on load and on hash change */
+  function openHashedFaq() {
+    if (!location.hash) return;
+    var item;
+    try { item = document.querySelector(location.hash); } catch (e) { return; }
+    if (!item || !item.classList.contains('faq-item')) return;
+    item.classList.add('open');
+    var btn = item.querySelector('.faq-q');
+    if (btn) btn.setAttribute('aria-expanded', 'true');
+    item.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'center' });
+  }
+  openHashedFaq();
+  window.addEventListener('hashchange', openHashedFaq);
+
   /* WhatsApp nudge (one-time, delayed) */
   var waFloat = document.querySelector('.wa-float');
   if (waFloat && !reduceMotion) {
