@@ -91,6 +91,17 @@ def website_schema():
         "inLanguage": "en-SG",
     }
 
+def simple_page_schema(ptype, name, path, description):
+    return {
+        "@type": ptype,
+        "@id": f"{BASE}/{path}/#webpage",
+        "url": f"{BASE}/{path}/",
+        "name": name,
+        "description": description,
+        "isPartOf": {"@id": BASE + "/#website"},
+        "about": {"@id": ORG_ID},
+    }
+
 def service_schema(name, stype):
     return {
         "@type": "Service",
@@ -328,10 +339,12 @@ def shell(page):
           <li><a href="https://wa.me/{WA}">WhatsApp +65 8951 8821</a></li>
           <li><a href="/buy-a-business-singapore/">Buy a business</a></li>
           <li><a href="/contact/">Contact</a></li>
+          <li><a href="/about/">About us</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
+      <p class="entity-line">Business Broker In Singapore is operated by <a href="https://thefundingassembly.com" rel="noopener">The Funding Assembly Pte. Ltd.</a> (UEN 202443830Z), 2 Leng Kee Road, #02-06 Thye Hong Centre, Singapore 159086.</p>
       <p>© 2026 Business Broker In Singapore. All discussions are confidential; nothing on this site is an offer of securities or investment advice.</p>
     </div>
   </div>
@@ -782,7 +795,11 @@ PAGES.append({
     "description": "Start a confidential conversation about selling or buying a Singapore business. WhatsApp us — no fee, no obligation, your name stays private.",
     "h1": "One message starts the conversation.",
     "lead": "WhatsApp is fastest — you'll reach a person, not a call centre. Every conversation is confidential from the first word, whether you're a year from selling or ready now.",
-    "schema": [breadcrumb_schema("Contact", "contact")],
+    "schema": [
+        simple_page_schema("ContactPage", "Contact Business Broker In Singapore", "contact",
+                           "Start a confidential conversation about selling or buying a Singapore business."),
+        breadcrumb_schema("Contact", "contact"),
+    ],
     "hero_ctas": f'''<div class="hero-ctas" style="margin-top:1.8rem">
         <a class="btn btn-wa" href="{wa_link("Hi, I'd like a confidential conversation.")}">{wa_icon()} WhatsApp +65 8951 8821</a>
       </div>''',
@@ -892,6 +909,63 @@ PAGES.append({
     "cta_wa": "Hi, I have a question about selling my business in Singapore.",
 })
 PAGES[-1]["schema"] = [faq_schema(_hub_all), breadcrumb_schema("FAQ", "faq")]
+
+# ---- About ----
+PAGES.append({
+    "slug": "about",
+    "crumb": "About",
+    "title": "About — Business Broker In Singapore",
+    "description": "Business Broker In Singapore is operated by The Funding Assembly Pte. Ltd. (UEN 202443830Z), a Singapore SME M&A advisory firm.",
+    "h1": "Who you're actually dealing with.",
+    "lead": "Business Broker In Singapore is operated by The Funding Assembly Pte. Ltd. — a Singapore-incorporated M&A advisory firm working with SME owners on the sale of their businesses.",
+    "schema": [],
+    "hero_ctas": f'''<div class="hero-ctas" style="margin-top:1.8rem">
+        <a class="btn btn-wa" href="{wa_link("Hi, I'd like a confidential conversation about selling my business.")}">{wa_icon()} WhatsApp — Confidential</a>
+      </div>''',
+    "main": f'''
+  <section>
+    <div class="container prose">
+      <div class="answer-first reveal">
+        <p><strong>Business Broker In Singapore is operated by The Funding Assembly Pte. Ltd.</strong> (UEN 202443830Z), a Singapore-incorporated SME M&amp;A advisory firm with its registered office at 2 Leng Kee Road, #02-06 Thye Hong Centre, Singapore 159086. The firm advises owners of profitable Singapore SMEs — typically S$2M–S$20M in revenue — on the confidential sale of their businesses, on success-only fees.</p>
+      </div>
+
+      <h2 class="reveal">What the firm does</h2>
+      <p class="reveal">We run sell-side mandates: the seller is the client, and the whole process is built around getting that owner a fair price on terms they can live with. That means establishing a valuation the buyer's accountant will accept, preparing the business so due diligence doesn't derail it, approaching screened buyers under NDA, and negotiating through to a signed sale and purchase agreement. The full sequence is set out on <a href="/how-it-works/">How It Works</a>, and the <a href="/fees/">fee schedule</a> is published rather than quoted after we've sized you up.</p>
+      <p class="reveal">The methodology is corporate M&amp;A — valuation evidence, targeted buyer outreach, managed data rooms, structured negotiation — applied at SME scale and on broker economics. There are no retainers and no upfront charges; the firm is paid from the proceeds, on completion, or not at all.</p>
+
+      <h2 class="reveal">Why this work</h2>
+      <p class="reveal">Singapore has a generation of founders in their sixties and seventies whose children have careers of their own. For most of them, succession now means a sale — and a badly run sale is expensive in ways that don't show up on the term sheet. Owners accept the first unsolicited offer without knowing the market. Word leaks and the best staff start looking. Deals collapse in due diligence over records that could have been cleaned up eighteen months earlier.</p>
+      <p class="reveal">A business is rarely just an asset to the person who built it. Staff who have been there fifteen years, a brand with the founder's name on it, customers who were there at the start — these are usually part of the decision, and they are negotiable terms in a deal rather than sentimental extras. Handled properly, a sale converts decades of work into retirement capital while leaving the thing you built standing.</p>
+
+      <h2 class="reveal">How we work with owners</h2>
+      <p class="reveal">Most conversations start a year or more before anything happens, and a good number end with honest advice to wait: fix the customer concentration, get a second-tier manager in place, come back when the accounts show two clean years. We would rather say that than take on a mandate that won't complete. Where a sale does make sense, confidentiality is the default from the first message — no listing, no name, no disclosure without your approval at each stage.</p>
+      <p class="reveal">The same team also advises on financing and corporate matters through <a href="https://thefundingassembly.com" rel="noopener">The Funding Assembly</a>, which is why deals here tend to be coordinated across the valuation, tax, corporate-secretarial and legal workstreams rather than handed off and hoped for.</p>
+
+      <h2 class="reveal">Entity details</h2>
+      <div class="table-wrap reveal">
+        <table>
+          <tbody>
+            <tr><td>Operating entity</td><td><strong>THE FUNDING ASSEMBLY PTE. LTD.</strong></td></tr>
+            <tr><td>UEN</td><td>202443830Z</td></tr>
+            <tr><td>Registered office</td><td>2 Leng Kee Road, #02-06 Thye Hong Centre, Singapore 159086</td></tr>
+            <tr><td>Group website</td><td><a href="https://thefundingassembly.com" rel="noopener">thefundingassembly.com</a></td></tr>
+            <tr><td>Contact</td><td>WhatsApp <a href="https://wa.me/{WA}">+65 8951 8821</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="reveal mt-1" style="color:var(--slate);font-size:0.95rem">Nothing on this site is an offer of securities or investment advice, and no advisory relationship arises until an appointment agreement is signed.</p>
+    </div>
+  </section>
+''',
+    "cta_h": "Start with one confidential conversation.",
+    "cta_p": "Thirty minutes on WhatsApp or a call. No fee, no obligation — and your name stays private until you decide otherwise.",
+    "cta_wa": "Hi, I'd like a confidential conversation about selling my business.",
+})
+PAGES[-1]["schema"] = [
+    simple_page_schema("AboutPage", "About Business Broker In Singapore", "about",
+                       "Business Broker In Singapore is operated by The Funding Assembly Pte. Ltd. (UEN 202443830Z), a Singapore SME M&A advisory firm."),
+    breadcrumb_schema("About", "about"),
+]
 
 # ============================== WRITE ==============================
 for page in PAGES:

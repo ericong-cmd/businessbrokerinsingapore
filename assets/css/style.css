@@ -542,3 +542,5 @@ td strong { color: var(--navy); }
 .fig-wrap { overflow-x: auto; margin: 2rem 0; -webkit-overflow-scrolling: touch; }
 .fig-svg { width: 100%; height: auto; min-width: 680px; display: block; }
 .section-navy .fig-wrap { margin: 2.4rem 0 0.6rem; }
+.footer-bottom .entity-line { margin-bottom: 0.6rem; color: #A9B7D2; }
+.footer-bottom .entity-line a { color: #C9D5EA; text-decoration: underline; }
