@@ -23,3 +23,9 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: python3 deploy_vercel.py
+
+      # Notifies Bing (and therefore ChatGPT search) that pages changed.
+      # Non-blocking: a failed ping must never fail a good deploy.
+      - name: Ping IndexNow
+        continue-on-error: true
+        run: python3 submit_indexnow.py
