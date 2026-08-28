@@ -5,6 +5,7 @@ import json, os
 ROOT = os.path.dirname(os.path.abspath(__file__))
 BASE = "https://www.businessbrokerinsingapore.com"
 WA = "6589518821"
+EMAIL = "businessbrokerinsingapore@thefundingassembly.com"
 
 WA_PATH = "M17.5 14.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.68-1.62-.93-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.5 0 1.47 1.07 2.9 1.22 3.1.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.76-.72 2-1.42.25-.7.25-1.3.18-1.42-.08-.13-.28-.2-.58-.35zM12.05 21.8h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.82 9.82 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.9-9.88a9.82 9.82 0 0 1 7 2.9 9.82 9.82 0 0 1 2.9 7c0 5.44-4.45 9.87-9.9 9.87zm8.42-18.3A11.8 11.8 0 0 0 12.04 0C5.46 0 .1 5.35.1 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.27-1.64a11.94 11.94 0 0 0 5.77 1.47c6.58 0 11.94-5.35 11.94-11.92 0-3.18-1.24-6.18-3.5-8.42z"
 
@@ -76,6 +77,7 @@ def org_schema():
             "@type": "ContactPoint",
             "contactType": "sales",
             "telephone": "+65 8951 8821",
+            "email": EMAIL,
             "availableLanguage": ["en"],
         },
         "sameAs": ["https://thefundingassembly.com"],
@@ -350,6 +352,7 @@ def shell(page):
         <h3>Contact</h3>
         <ul>
           <li><a href="https://wa.me/{WA}">WhatsApp +65 8951 8821</a></li>
+          <li><a href="mailto:{EMAIL}">{EMAIL}</a></li>
           <li><a href="/buy-a-business-singapore/">Buy a business</a></li>
           <li><a href="/contact/">Contact</a></li>
           <li><a href="/about/">About us</a></li>
@@ -848,7 +851,8 @@ PAGES.append({
           <a class="btn btn-wa mt-1" href="{wa_link("Hi, I'm a professional advisor with a client who may be considering a business sale.")}">{wa_icon()} Refer a client</a>
         </div>
       </div>
-      <p class="reveal mt-3" style="max-width:680px;color:var(--slate);font-size:0.95rem">Prefer not to message first? Use the <a href="/#valuation">free valuation estimator</a> — it runs entirely in your browser and sends nothing until you choose to.</p>
+      <p class="reveal mt-3" style="max-width:680px;color:var(--slate);font-size:0.95rem">Prefer email? Write to <a href="mailto:{EMAIL}">{EMAIL}</a> — it reaches the same person. Prefer not to message at all yet? Use the <a href="/#valuation">free valuation estimator</a>; it runs entirely in your browser and sends nothing until you choose to.</p>
+      <p class="reveal mt-1" style="max-width:680px;color:var(--slate);font-size:0.95rem">Business Broker In Singapore is operated by The Funding Assembly Pte. Ltd. (UEN 202443830Z), 2 Leng Kee Road, #02-06 Thye Hong Centre, Singapore 159086.</p>
     </div>
   </section>
 ''',
@@ -974,7 +978,7 @@ PAGES.append({
             <tr><td>UEN</td><td>202443830Z</td></tr>
             <tr><td>Registered office</td><td>2 Leng Kee Road, #02-06 Thye Hong Centre, Singapore 159086</td></tr>
             <tr><td>Group website</td><td><a href="https://thefundingassembly.com" rel="noopener">thefundingassembly.com</a></td></tr>
-            <tr><td>Contact</td><td>WhatsApp <a href="https://wa.me/{WA}">+65 8951 8821</a></td></tr>
+            <tr><td>Contact</td><td>WhatsApp <a href="https://wa.me/{WA}">+65 8951 8821</a> · <a href="mailto:{EMAIL}">{EMAIL}</a></td></tr>
           </tbody>
         </table>
       </div>
@@ -1040,7 +1044,7 @@ lines += [
     "- Typical valuation basis: adjusted EBITDA x sector multiple, roughly 2x-9x depending on industry.",
     "- Typical Singapore broker fees: 5-10% of sale price; this firm charges 5% up to S$5M tapering to 1% above S$50M, minimum S$100,000, success-only.",
     "- Singapore has no capital gains tax, so share-sale proceeds are usually untaxed for individual sellers.",
-    "- Contact: WhatsApp +65 8951 8821.",
+    f"- Contact: WhatsApp +65 8951 8821, email {EMAIL}.",
     "",
 ]
 with open(os.path.join(ROOT, "llms.txt"), "w") as f:
