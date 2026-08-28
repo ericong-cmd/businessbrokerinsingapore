@@ -20,8 +20,8 @@ API = "https://api.vercel.com"
 PROJECT = "businessbrokerinsingapore"
 APEX = "businessbrokerinsingapore.com"
 WWW = "www." + APEX
-EXCLUDE = {".git", ".gitignore", "build_pages.py", "deploy_vercel.py",
-           "deploy.yml.example", "README.md", "gfonts.css"}
+EXCLUDE = {".git", ".github", ".gitignore", "build_pages.py", "deploy_vercel.py",
+           "submit_indexnow.py", "deploy.yml.example", "README.md", "gfonts.css"}
 
 TOKEN = os.environ.get("vercel") or os.environ.get("VERCEL_TOKEN")
 if not TOKEN:

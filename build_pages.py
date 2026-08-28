@@ -1046,3 +1046,49 @@ lines += [
 with open(os.path.join(ROOT, "llms.txt"), "w") as f:
     f.write("\n".join(lines))
 print("wrote", os.path.join(ROOT, "llms.txt"), f"({len(lines)} lines)")
+
+# ---- sitemap.xml : lastmod from the real change date of each page's source ----
+import subprocess, datetime
+
+def last_changed(paths):
+    """Newest git commit date across the given source paths; falls back to file mtime."""
+    newest = None
+    for p in paths:
+        full = os.path.join(ROOT, p)
+        stamp = None
+        try:
+            out = subprocess.run(["git", "-C", ROOT, "log", "-1", "--format=%cI", "--", p],
+                                 capture_output=True, text=True, timeout=20)
+            if out.returncode == 0 and out.stdout.strip():
+                stamp = out.stdout.strip()[:10]
+        except Exception:
+            pass
+        if not stamp and os.path.exists(full):
+            stamp = datetime.date.fromtimestamp(os.path.getmtime(full)).isoformat()
+        if stamp and (newest is None or stamp > newest):
+            newest = stamp
+    return newest or datetime.date.today().isoformat()
+
+SITEMAP = [("", "1.0", ["index.html"])] + [
+    (slug, prio, ["build_pages.py", f"{slug}/index.html"]) for slug, prio in [
+        ("sell-your-business-singapore", "0.9"),
+        ("business-valuation-singapore", "0.9"),
+        ("fees", "0.8"),
+        ("how-it-works", "0.8"),
+        ("sell-your-fnb-business-singapore", "0.8"),
+        ("faq", "0.8"),
+        ("buy-a-business-singapore", "0.7"),
+        ("about", "0.6"),
+        ("contact", "0.6"),
+    ]
+]
+urls = "\n".join(
+    f'  <url><loc>{BASE}/{slug + "/" if slug else ""}</loc>'
+    f"<lastmod>{last_changed(srcs)}</lastmod><priority>{prio}</priority></url>"
+    for slug, prio, srcs in SITEMAP
+)
+with open(os.path.join(ROOT, "sitemap.xml"), "w") as f:
+    f.write('<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            + urls + "\n</urlset>\n")
+print("wrote", os.path.join(ROOT, "sitemap.xml"), f"({len(SITEMAP)} urls)")

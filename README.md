@@ -19,10 +19,31 @@ routes to WhatsApp (`wa.me` links) — there is no form backend.
 | `/how-it-works/` | how to sell a business in Singapore |
 | `/sell-your-fnb-business-singapore/` | sell F&B business Singapore |
 | `/buy-a-business-singapore/` | buy a business Singapore |
+| `/faq/` | selling a business Singapore FAQ |
+| `/about/` | entity / E-E-A-T page |
 | `/contact/` | — |
 
-Every page carries JSON-LD (`ProfessionalService`, `FAQPage`,
-`BreadcrumbList`) and an AEO-style direct-answer first paragraph.
+Every page carries a JSON-LD `@graph` — `ProfessionalService` (with the
+operating entity, UEN and registered address) and `WebSite` sitewide, plus
+`FAQPage`, `BreadcrumbList`, `Service`, `AboutPage` or `ContactPage` as
+applicable — an og:image and Twitter card, the footer entity line, and an
+AEO-style direct-answer first paragraph.
+
+## Build
+
+`python3 build_pages.py` regenerates every interior page from the shared
+shell, plus `llms.txt` and `sitemap.xml` (whose `lastmod` values come from
+each page's real git commit date). The homepage `index.html` and `404.html`
+are hand-maintained — mirror shell changes into them by hand.
+
+Answer engines: `robots.txt` explicitly allows GPTBot, OAI-SearchBot,
+ClaudeBot, PerplexityBot, Google-Extended, CCBot and Bytespider; `llms.txt`
+maps the site for them; every FAQ question has a stable `id` anchor so
+individual answers are directly citable.
+
+After deploying a content change, run `python3 submit_indexnow.py` to push
+the sitemap URLs to IndexNow (Bing, and therefore ChatGPT search). The
+`<32-hex>.txt` key file at the repo root must stay published.
 
 ## Deployment
 
