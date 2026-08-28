@@ -130,7 +130,7 @@ def service_schema(name, stype):
 # talks to Resend server-side so the API key is never exposed. If RESEND_API_KEY
 # is unset the function answers 503 and the block falls back to the WhatsApp lane
 # at runtime, so this can ship before the key exists.
-EMAIL_ENDPOINT = "/api/subscribe"
+EMAIL_ENDPOINT = "/api/subscribe/"  # trailing slash: vercel.json sets trailingSlash:true
 
 SECTORS = [
     ("fnb", "F&B / restaurant / food manufacturing", 2.5, 5),
