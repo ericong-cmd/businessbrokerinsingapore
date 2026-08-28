@@ -126,10 +126,11 @@ def service_schema(name, stype):
         "provider": {"@id": ORG_ID},
     }
 
-# Warm-lane capture endpoint (Brevo/MailerLite form action). While this is empty
-# every capture block degrades to the WhatsApp hot lane instead of rendering a
-# form that posts nowhere. Set it once here and rebuild to switch the lane on.
-EMAIL_ENDPOINT = ""
+# Warm-lane capture endpoint — our own Vercel function (api/subscribe.js), which
+# talks to Resend server-side so the API key is never exposed. If RESEND_API_KEY
+# is unset the function answers 503 and the block falls back to the WhatsApp lane
+# at runtime, so this can ship before the key exists.
+EMAIL_ENDPOINT = "/api/subscribe"
 
 SECTORS = [
     ("fnb", "F&B / restaurant / food manufacturing", 2.5, 5),
@@ -153,18 +154,20 @@ def capture_block(source, heading, blurb, wa_text):
           <p>{blurb}</p>
           <a class="btn btn-wa" data-track="wa-{source}" href="{wa_link(wa_text)}">{wa_icon()} Send it to me on WhatsApp</a>
         </div>'''
-    return f'''<div class="capture">
+    return f'''<div class="capture" data-capture-block="{source}">
           <h3>{heading}</h3>
           <p>{blurb}</p>
           <form class="capture-form" action="{EMAIL_ENDPOINT}" method="POST" data-capture="{source}">
-            <input type="hidden" name="SOURCE" value="{source}">
-            <input type="hidden" name="SECTOR" value="" data-fill="sector">
-            <input type="hidden" name="DETAIL" value="" data-fill="detail">
+            <input type="hidden" name="source" value="{source}">
+            <input type="hidden" name="sector" value="" data-fill="sector">
+            <input type="hidden" name="detail" value="" data-fill="detail">
             <label class="sr-only" for="cap-email-{source}">Your email address</label>
-            <input id="cap-email-{source}" name="EMAIL" type="email" required autocomplete="email" placeholder="you@company.com">
+            <input id="cap-email-{source}" name="email" type="email" required autocomplete="email" placeholder="you@company.com">
             <button class="btn btn-gold" type="submit">Email me the breakdown</button>
           </form>
-          <p class="capture-note">One email with the breakdown, then a short series you can leave any time. No sharing, no calls unless you ask.</p>
+          <p class="capture-msg" role="status" hidden></p>
+          <p class="capture-note">One email with the breakdown. No sharing, and no calls unless you ask.</p>
+          <a class="btn btn-wa capture-fallback" data-track="wa-{source}" href="{wa_link(wa_text)}" hidden>{wa_icon()} Send it to me on WhatsApp</a>
         </div>'''
 
 def estimator_block(note_link=True):
@@ -181,7 +184,11 @@ def estimator_block(note_link=True):
     note = ('<p class="calc-note">Indicative only. Actual value depends on growth, customer concentration, margins, '
             'contracts and deal structure — a proper assessment looks at all of these. '
             '<a href="/business-valuation-singapore/">How valuation really works →</a></p>') if note_link else ""
-    return f'''<form class="calc reveal" id="calc-form" novalidate>
+    # The result panel (which carries its own capture form) is a SIBLING of the
+    # input form, never a child — nested <form> elements are invalid HTML and the
+    # browser drops the inner one.
+    return f'''<div class="calc reveal">
+      <form id="calc-form" novalidate>
         <div class="calc-grid">
           <div class="field">
             <label for="calc-industry">Your industry</label>
@@ -214,6 +221,7 @@ def estimator_block(note_link=True):
           <button class="btn btn-gold" type="submit">Show My Estimate</button>
           <span style="font-size:0.9rem;color:var(--slate)">Nothing is stored or sent — the estimate appears right here.</span>
         </div>
+      </form>
         <div class="calc-result" id="calc-result" aria-live="polite">
           <div class="range" id="calc-range">—</div>
           <p class="basis" id="calc-basis"></p>
@@ -222,7 +230,7 @@ def estimator_block(note_link=True):
           {capture}
         </div>
         {note}
-      </form>'''
+    </div>'''
 
 PROCESS_STAGES = [
     ("Weeks 1–2", "Discussion"),
@@ -409,7 +417,7 @@ def shell(page):
 <main id="main">
   <div class="page-hero">
     <div class="container">
-      <p class="breadcrumbs"><a href="/">Home</a> / {page["crumb"]}</p>
+      <p class="breadcrumbs"><a href="/">Home</a> / {f'<a href="/{page["crumb_parent"][1]}/">{page["crumb_parent"][0]}</a> / ' if page.get("crumb_parent") else ""}{page["crumb"]}</p>
       <h1>{page["h1"]}</h1>
       <p class="lead">{page["lead"]}</p>
       {hero_ctas}
@@ -1057,6 +1065,115 @@ PAGES.append({
 })
 PAGES[-1]["schema"] = [faq_schema(_hub_all), breadcrumb_schema("FAQ", "faq")]
 
+# ============================== ARTICLES ==============================
+# The content engine. Add a dict to ARTICLES and rebuild — the article page, the
+# /insights/ hub, sitemap, llms.txt and internal links all follow automatically.
+# Nothing is published while ARTICLES is empty; the hub only builds when it has
+# something to list, so there is never a thin page live.
+#
+# Shape of an article (all fields required unless marked optional):
+#
+#   {
+#     "slug": "tax-when-selling-a-business-singapore",
+#     "cluster": "selling",                  # selling | valuation
+#     "title": "Do I Pay Tax When I Sell My Business in Singapore?",   # <= 60 chars
+#     "description": "...",                                            # <= 155 chars
+#     "h1": "Do I pay tax when I sell my business in Singapore?",
+#     "lead": "One-sentence framing in the house voice.",
+#     "published": "2026-09-04",             # ISO date
+#     "updated": "2026-09-04",               # optional, defaults to published
+#     "answer": "40-60 word direct answer — the paragraph an answer engine lifts.",
+#     "body": "<h2 class=\"reveal\">...</h2><p class=\"reveal\">...</p>",
+#     "faqs": [("Question?", "Answer.")],
+#     "cta": "estimator",                    # estimator | quiz | multiples
+#   }
+ARTICLES = []
+
+CLUSTERS = {
+    "selling": ("Selling process", "sell-your-business-singapore", "Sell Your Business"),
+    "valuation": ("Valuation", "business-valuation-singapore", "Business Valuation"),
+}
+ARTICLE_CTA = {
+    "estimator": ("valuation-estimator", "Estimate what your business could sell for",
+                  "The same sector multiples applied to your own figures — no email needed for the range."),
+    "quiz": ("exit-readiness", "Score how ready your business is to sell",
+             "Eight questions, two minutes, and a clear view of which gaps a buyer would find first."),
+    "multiples": ("singapore-sme-valuation-multiples", "See the multiples table by sector",
+                  "Published EBITDA multiple ranges for Singapore SMEs, with the drivers that move a business within its range."),
+}
+
+def article_page(art, siblings):
+    """Build one article in the house pattern: answer first, body, FAQ, one CTA,
+    links to its hub and two siblings."""
+    hub_label, hub_slug, hub_crumb = CLUSTERS[art["cluster"]]
+    cta_slug, cta_head, cta_blurb = ARTICLE_CTA[art.get("cta", "estimator")]
+    sib_html = ""
+    if siblings:
+        links = "".join(
+            f'<li><a href="/insights/{s["slug"]}/">{s["h1"]}</a></li>' for s in siblings
+        )
+        sib_html = f'''
+      <div class="related reveal">
+        <h2>Related reading</h2>
+        <ul>{links}</ul>
+      </div>'''
+    return {
+        "slug": f"insights/{art['slug']}",
+        "crumb": art["h1"],
+        "crumb_parent": ("Insights", "insights"),
+        "title": art["title"],
+        "description": art["description"],
+        "h1": art["h1"],
+        "lead": art["lead"],
+        "schema": [],
+        "_article": art,
+        "main": f'''
+  <section>
+    <div class="container prose">
+      <div class="answer-first reveal">
+        <p>{art["answer"]}</p>
+      </div>
+
+      <p class="reveal article-meta">Published {art["published"]}{" · Updated " + art["updated"] if art.get("updated") and art["updated"] != art["published"] else ""} · Part of our <a href="/{hub_slug}/">{hub_label.lower()}</a> guide</p>
+
+{art["body"]}
+
+      <div class="tool-cta reveal">
+        <h2>{cta_head}</h2>
+        <p>{cta_blurb}</p>
+        <a class="btn btn-gold" href="/{cta_slug}/">Open the tool</a>
+      </div>
+{sib_html}
+    </div>
+  </section>
+
+  <section class="on-light" style="padding-top:0">
+    <div class="container">
+      <div class="section-head reveal"><h2>Questions on this</h2></div>
+      <div class="reveal" style="max-width:820px">
+        {faq_html(art["faqs"])}
+      </div>
+    </div>
+  </section>
+''',
+        "cta_wa": f"Hi, I read your article on {art['h1'].rstrip('?')} and I'd like a confidential conversation.",
+    }
+
+def article_schema(art):
+    return {
+        "@type": "Article",
+        "@id": f"{BASE}/insights/{art['slug']}/#article",
+        "headline": art["h1"],
+        "description": art["description"],
+        "datePublished": art["published"],
+        "dateModified": art.get("updated", art["published"]),
+        "inLanguage": "en-SG",
+        "author": {"@id": ORG_ID},
+        "publisher": {"@id": ORG_ID},
+        "isPartOf": {"@id": BASE + "/#website"},
+        "mainEntityOfPage": f"{BASE}/insights/{art['slug']}/",
+    }
+
 # ---- Valuation estimator (own URL, for direct linking) ----
 faqs_est = [
     ("How accurate is this estimate?",
@@ -1317,13 +1434,15 @@ PAGES.append({
 
   <section style="padding-top:1.5rem">
     <div class="container">
-      <form class="quiz" id="quiz-form" novalidate style="max-width:820px">
+      <div class="quiz" style="max-width:820px">
+        <form id="quiz-form" novalidate>
         {quiz_html()}
         <p class="calc-error" id="quiz-error" role="alert"></p>
         <div class="calc-actions">
           <button class="btn btn-gold" type="submit">Show My Readiness Score</button>
           <span style="font-size:0.9rem;color:var(--slate)">Answers stay in your browser — nothing is sent.</span>
         </div>
+        </form>
 
         <div class="calc-result quiz-result" id="quiz-result" aria-live="polite">
           <div class="quiz-score"><span id="quiz-score-num">0</span><span class="quiz-score-of">/100</span></div>
@@ -1336,7 +1455,7 @@ PAGES.append({
                          "Your score broken down by area, what each gap costs in a real sale, and the sequence to close them before you go to market.",
                          "Hi, I did the exit-readiness quiz and I'd like the detailed gap report.")}
         </div>
-      </form>
+      </div>
     </div>
   </section>
 
@@ -1430,6 +1549,79 @@ PAGES[-1]["schema"] = [
     breadcrumb_schema("About", "about"),
 ]
 
+# ---- Insights hub + article pages (only when there are articles) ----
+def build_articles():
+    if not ARTICLES:
+        return
+    by_date = sorted(ARTICLES, key=lambda a: a["published"], reverse=True)
+
+    for art in by_date:
+        same = [a for a in by_date if a["cluster"] == art["cluster"] and a["slug"] != art["slug"]]
+        others = [a for a in by_date if a["cluster"] != art["cluster"] and a["slug"] != art["slug"]]
+        siblings = (same + others)[:2]
+        page = article_page(art, siblings)
+        page["schema"] = [
+            article_schema(art),
+            faq_schema(art["faqs"]),
+            {
+                "@type": "BreadcrumbList",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "Home", "item": BASE + "/"},
+                    {"@type": "ListItem", "position": 2, "name": "Insights", "item": f"{BASE}/insights/"},
+                    {"@type": "ListItem", "position": 3, "name": art["h1"], "item": f"{BASE}/insights/{art['slug']}/"},
+                ],
+            },
+        ]
+        PAGES.append(page)
+
+    groups = []
+    for key, (label, hub_slug, _crumb) in CLUSTERS.items():
+        items = [a for a in by_date if a["cluster"] == key]
+        if not items:
+            continue
+        cards = "\n".join(
+            f'''        <article class="card reveal" style="--i:{i}">
+          <h3><a href="/insights/{a["slug"]}/">{a["h1"]}</a></h3>
+          <p>{a["description"]}</p>
+          <p class="article-meta">{a["published"]}</p>
+        </article>''' for i, a in enumerate(items)
+        )
+        groups.append(f'''      <h2 class="reveal">{label}</h2>
+      <p class="reveal">Part of our <a href="/{hub_slug}/">{label.lower()}</a> guide.</p>
+      <div class="grid-2 mt-2">
+{cards}
+      </div>''')
+
+    PAGES.append({
+        "slug": "insights",
+        "crumb": "Insights",
+        "title": "Insights — Selling a Business in Singapore",
+        "description": "Practical articles for Singapore SME owners on selling a business: tax, valuation, process, confidentiality and buyer expectations.",
+        "h1": "Insights for Singapore business owners.",
+        "lead": "Straight answers to the questions owners actually ask, written for people who will only sell a business once.",
+        "schema": [
+            simple_page_schema("CollectionPage", "Insights", "insights",
+                               "Articles for Singapore SME owners on selling a business."),
+            breadcrumb_schema("Insights", "insights"),
+            {
+                "@type": "ItemList",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": i + 1, "url": f"{BASE}/insights/{a['slug']}/", "name": a["h1"]}
+                    for i, a in enumerate(by_date)
+                ],
+            },
+        ],
+        "main": f'''
+  <section>
+    <div class="container prose">
+{"".join(groups)}
+    </div>
+  </section>
+''',
+    })
+
+build_articles()
+
 # ============================== WRITE ==============================
 for page in PAGES:
     path = os.path.join(ROOT, page["slug"], "index.html")
@@ -1474,6 +1666,10 @@ lines = [
 for slug in ORDER:
     title = next(p["crumb"] for p in PAGES if p["slug"] == slug)
     lines.append(f"- [{title}]({BASE}/{slug}/): {LLMS_SUMMARY[slug]}")
+if ARTICLES:
+    lines += ["", "## Articles", ""]
+    for _a in sorted(ARTICLES, key=lambda a: a["published"], reverse=True):
+        lines.append(f"- [{_a['h1']}]({BASE}/insights/{_a['slug']}/): {_a['description']}")
 lines += [
     "",
     "## Key facts",
@@ -1527,6 +1723,12 @@ SITEMAP = [("", "1.0", ["index.html"])] + [
         ("contact", "0.6"),
     ]
 ]
+if ARTICLES:
+    SITEMAP.append(("insights", "0.7", ["build_pages.py", "insights/index.html"]))
+    for _a in sorted(ARTICLES, key=lambda a: a["published"], reverse=True):
+        SITEMAP.append((f"insights/{_a['slug']}", "0.7",
+                        ["build_pages.py", f"insights/{_a['slug']}/index.html"]))
+
 urls = "\n".join(
     f'  <url><loc>{BASE}/{slug + "/" if slug else ""}</loc>'
     f"<lastmod>{last_changed(srcs)}</lastmod><priority>{prio}</priority></url>"

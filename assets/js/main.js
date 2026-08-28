@@ -105,12 +105,68 @@
     track(el.getAttribute('data-track') || 'wa-click', { href: el.getAttribute('href') || '' });
   });
 
-  /* Warm-lane capture: tag each submission with its source and context. */
+  /* Warm-lane capture: post to our own endpoint, which talks to Resend server-side.
+     If the endpoint is not configured yet (503) the block falls back to WhatsApp,
+     so this ships safely before the API key exists. */
   document.querySelectorAll('form[data-capture]').forEach(function (form) {
-    form.addEventListener('submit', function () {
-      track('capture-' + form.getAttribute('data-capture'), {
+    var block = form.closest('.capture');
+    var msg = block && block.querySelector('.capture-msg');
+    var fallback = block && block.querySelector('.capture-fallback');
+    var note = block && block.querySelector('.capture-note');
+    var btn = form.querySelector('button[type="submit"]');
+
+    function say(text, tone) {
+      if (!msg) return;
+      msg.textContent = text;
+      msg.hidden = false;
+      msg.setAttribute('data-tone', tone || 'info');
+    }
+    function toWhatsApp(text) {
+      say(text, 'warn');
+      form.hidden = true;
+      if (note) note.hidden = true;
+      if (fallback) fallback.hidden = false;
+    }
+
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var source = form.getAttribute('data-capture');
+      var payload = {
+        email: (form.querySelector('input[type="email"]') || {}).value || '',
+        source: source,
         sector: (form.querySelector('[data-fill="sector"]') || {}).value || '',
         detail: (form.querySelector('[data-fill="detail"]') || {}).value || ''
+      };
+
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+      say('Sending…', 'info');
+
+      fetch(form.getAttribute('action'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (d) {
+          return { status: r.status, data: d };
+        });
+      }).then(function (res) {
+        if (res.status === 200) {
+          track('capture-' + source, { sector: payload.sector });
+          form.hidden = true;
+          if (note) note.hidden = true;
+          say('Sent — it should arrive in a minute. Check spam if it doesn’t.', 'ok');
+          return;
+        }
+        if (btn) { btn.disabled = false; btn.textContent = 'Email me the breakdown'; }
+        if (res.status === 503) {
+          toWhatsApp('Email delivery isn’t switched on yet — send it over WhatsApp instead and you’ll get the same breakdown.');
+          return;
+        }
+        if (res.status === 400) { say(res.data.error || 'Please check that email address.', 'warn'); return; }
+        toWhatsApp('That didn’t send. WhatsApp is the quickest route right now.');
+      }).catch(function () {
+        if (btn) { btn.disabled = false; btn.textContent = 'Email me the breakdown'; }
+        toWhatsApp('That didn’t send — you may be offline. WhatsApp works too.');
       });
     });
   });

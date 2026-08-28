@@ -628,3 +628,24 @@ td strong { color: var(--navy); }
 .quiz-gaps strong { color: var(--white); }
 .quiz-gaps p { color: #C9D5EA; font-size: 0.95rem; }
 @media (prefers-reduced-motion: reduce) { .quiz-meter-fill { transition: none; } }
+.capture-msg { font-size: 0.92rem; margin: 0.8rem 0 0; }
+.capture-msg[data-tone="ok"] { color: #86EFAC; }
+.capture-msg[data-tone="warn"] { color: var(--gold-soft); }
+.capture-msg[data-tone="info"] { color: #B8C4DC; }
+.capture-fallback { margin-top: 0.9rem; }
+/* display:flex/inline-flex beats the UA [hidden] rule — make hidden mean hidden. */
+[hidden] { display: none !important; }
+
+/* ---------- Articles ---------- */
+.article-meta { font-size: 0.9rem; color: var(--slate); }
+.tool-cta {
+  margin: 2.5rem 0; padding: 1.8rem;
+  border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--white); box-shadow: var(--shadow);
+}
+.tool-cta h2 { font-size: 1.35rem; margin-bottom: 0.5rem; }
+.tool-cta p { color: var(--slate); margin-bottom: 1.2rem; }
+.related { margin: 2.5rem 0 0; padding-top: 1.6rem; border-top: 1px solid var(--line); }
+.related h2 { font-size: 1.25rem; margin-bottom: 0.8rem; }
+.related ul { margin: 0; padding-left: 1.2rem; }
+.related li { margin-bottom: 0.5rem; }

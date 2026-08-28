@@ -43,7 +43,41 @@ individual answers are directly citable.
 
 After deploying a content change, run `python3 submit_indexnow.py` to push
 the sitemap URLs to IndexNow (Bing, and therefore ChatGPT search). The
-`<32-hex>.txt` key file at the repo root must stay published.
+`<32-hex>.txt` key file at the repo root must stay published. The deploy
+workflow also pings IndexNow automatically after each production deploy.
+
+## Publishing an article
+
+Append a dict to `ARTICLES` in `build_pages.py` and rebuild. The article
+page, the `/insights/` hub, internal links to its cluster hub and two
+sibling articles, `Article` + `FAQPage` + `BreadcrumbList` schema, the
+sitemap entry and the `llms.txt` line are all generated from it. The
+shape of the dict is documented above `ARTICLES = []`. While that list is
+empty no `/insights/` pages are built, so the hub is never a thin page.
+
+Clusters are `selling` (hub: `/sell-your-business-singapore/`) and
+`valuation` (hub: `/business-valuation-singapore/`). Each article carries
+exactly one tool CTA — `estimator`, `quiz` or `multiples`.
+
+## Lead capture
+
+Two lanes. The hot lane is WhatsApp, everywhere, unchanged. The warm lane
+is the capture block on the estimator and quiz results, which posts to
+`/api/subscribe` — a Vercel function that calls Resend server-side so the
+API key is never exposed to the browser.
+
+Set these in the Vercel project (Settings → Environment Variables):
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `RESEND_API_KEY` | yes | Resend API key. Until it is set the endpoint returns 503 and the capture block falls back to WhatsApp at runtime. |
+| `RESEND_AUDIENCE_ID` | no | Adds each contact to a Resend audience, tagged by source and sector. |
+| `CAPTURE_FROM` | no | Verified sender address. Defaults to `hello@businessbrokerinsingapore.com` — the sending domain must be verified in Resend first. |
+| `CAPTURE_BCC` | no | Copies every capture to the broker. |
+
+Resend sends the immediate breakdown email but has no drip automation, so
+the five-email nurture sequence still needs a scheduler (a Vercel Cron
+job calling Resend is the intended route).
 
 ## Deployment
 
