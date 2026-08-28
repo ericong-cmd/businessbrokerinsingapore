@@ -537,3 +537,8 @@ td strong { color: var(--navy); }
   .wa-float.nudge { animation: none; }
   .stat-num { /* counters render final values in HTML; JS respects this too */ }
 }
+
+/* ---------- Figures (inline SVG diagrams) ---------- */
+.fig-wrap { overflow-x: auto; margin: 2rem 0; -webkit-overflow-scrolling: touch; }
+.fig-svg { width: 100%; height: auto; min-width: 680px; display: block; }
+.section-navy .fig-wrap { margin: 2.4rem 0 0.6rem; }

@@ -100,6 +100,103 @@ def service_schema(name, stype):
         "provider": {"@id": ORG_ID},
     }
 
+PROCESS_STAGES = [
+    ("Weeks 1–2", "Discussion"),
+    ("Weeks 2–6", "Valuation"),
+    ("Month 2", "Materials"),
+    ("Months 2–4", "Buyer search"),
+    ("Months 4–5", "Offers"),
+    ("Months 5–7", "Due diligence"),
+    ("Months 7–8", "Completion"),
+]
+
+def process_diagram(on_dark=False):
+    """Horizontal seven-stage overview. Complements, not replaces, the detailed timeline."""
+    ink = "#FFFFFF" if on_dark else "#0F172A"
+    muted = "#B8C4DC" if on_dark else "#475569"
+    line = "rgba(255,255,255,0.25)" if on_dark else "#CBD5E1"
+    accent = "#F59E0B" if on_dark else "#B45309"
+    ring = "rgba(255,255,255,0.10)" if on_dark else "#FFFFFF"
+    nodes = []
+    for i, (when, label) in enumerate(PROCESS_STAGES):
+        x = 70 + i * 160
+        nodes.append(f'''<g>
+      <text x="{x}" y="42" text-anchor="middle" fill="{muted}" font-family="Open Sans, sans-serif" font-size="14">{when}</text>
+      <circle cx="{x}" cy="88" r="22" fill="{ring}" stroke="{accent}" stroke-width="2"/>
+      <text x="{x}" y="95" text-anchor="middle" fill="{accent}" font-family="Poppins, sans-serif" font-size="18" font-weight="700">{i + 1}</text>
+      <text x="{x}" y="140" text-anchor="middle" fill="{ink}" font-family="Poppins, sans-serif" font-size="15" font-weight="600">{label}</text>
+    </g>''')
+    return f'''<div class="fig-wrap">
+  <svg class="fig-svg" viewBox="0 0 1100 170" width="1100" height="170" role="img"
+       aria-labelledby="pd-t{int(on_dark)} pd-d{int(on_dark)}" preserveAspectRatio="xMidYMid meet">
+    <title id="pd-t{int(on_dark)}">The seven stages of selling a business in Singapore</title>
+    <desc id="pd-d{int(on_dark)}">A seven-stage timeline running about six to eight months: confidential discussion in weeks 1–2, valuation and preparation in weeks 2–6, marketing materials in month 2, buyer search and screening in months 2–4, offers and negotiation in months 4–5, due diligence in months 5–7, and completion and handover in months 7–8.</desc>
+    <line x1="70" y1="88" x2="1030" y2="88" stroke="{line}" stroke-width="2"/>
+    {"".join(nodes)}
+  </svg>
+</div>'''
+
+def valuation_diagram():
+    """Worked example: adjusted EBITDA x sector multiple -> indicative range."""
+    return '''<div class="fig-wrap">
+  <svg class="fig-svg" viewBox="0 0 1100 210" width="1100" height="210" role="img"
+       aria-labelledby="vd-t vd-d" preserveAspectRatio="xMidYMid meet">
+    <title id="vd-t">Worked example: adjusted EBITDA multiplied by a sector multiple gives an indicative value range</title>
+    <desc id="vd-d">Adjusted EBITDA of S$750,000, multiplied by a sector multiple of three to four times, gives an indicative valuation range of S$2.25 million to S$3.0 million.</desc>
+    <g>
+      <rect x="30" y="45" width="290" height="120" rx="14" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+      <text x="175" y="80" text-anchor="middle" fill="#475569" font-family="Open Sans, sans-serif" font-size="15">Adjusted EBITDA</text>
+      <text x="175" y="121" text-anchor="middle" fill="#0F172A" font-family="Poppins, sans-serif" font-size="30" font-weight="700">S$750,000</text>
+      <text x="175" y="146" text-anchor="middle" fill="#475569" font-family="Open Sans, sans-serif" font-size="13">normalised profit</text>
+    </g>
+    <text x="358" y="116" text-anchor="middle" fill="#B45309" font-family="Poppins, sans-serif" font-size="30" font-weight="700">×</text>
+    <g>
+      <rect x="395" y="45" width="290" height="120" rx="14" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="1.5"/>
+      <text x="540" y="80" text-anchor="middle" fill="#475569" font-family="Open Sans, sans-serif" font-size="15">Sector multiple</text>
+      <text x="540" y="121" text-anchor="middle" fill="#0F172A" font-family="Poppins, sans-serif" font-size="30" font-weight="700">3× – 4×</text>
+      <text x="540" y="146" text-anchor="middle" fill="#475569" font-family="Open Sans, sans-serif" font-size="13">set by industry and risk</text>
+    </g>
+    <text x="723" y="116" text-anchor="middle" fill="#B45309" font-family="Poppins, sans-serif" font-size="30" font-weight="700">=</text>
+    <g>
+      <rect x="760" y="45" width="310" height="120" rx="14" fill="#1E3A8A" stroke="#1E3A8A" stroke-width="1.5"/>
+      <text x="915" y="80" text-anchor="middle" fill="#B8C4DC" font-family="Open Sans, sans-serif" font-size="15">Indicative range</text>
+      <text x="915" y="121" text-anchor="middle" fill="#FFFFFF" font-family="Poppins, sans-serif" font-size="28" font-weight="700">S$2.25M – S$3.0M</text>
+      <text x="915" y="146" text-anchor="middle" fill="#B8C4DC" font-family="Open Sans, sans-serif" font-size="13">before deal structure</text>
+    </g>
+  </svg>
+</div>'''
+
+FEE_TIERS = [
+    ("Up to S$5M", 5),
+    ("S$5M – S$10M", 4),
+    ("S$10M – S$20M", 3),
+    ("S$20M – S$50M", 2),
+    ("Above S$50M", 1),
+]
+
+def fee_diagram():
+    """Single-series column chart of the published success-fee schedule."""
+    bars = []
+    base_y, max_h = 210, 150
+    for i, (band, pct) in enumerate(FEE_TIERS):
+        x = 60 + i * 200
+        h = round(max_h * pct / 5)
+        y = base_y - h
+        bars.append(f'''<g>
+      <text x="{x + 70}" y="{y - 14}" text-anchor="middle" fill="#0F172A" font-family="Poppins, sans-serif" font-size="22" font-weight="700">{pct}%</text>
+      <rect x="{x}" y="{y}" width="140" height="{h}" rx="4" fill="#1E3A8A"/>
+      <text x="{x + 70}" y="{base_y + 26}" text-anchor="middle" fill="#475569" font-family="Open Sans, sans-serif" font-size="14">{band}</text>
+    </g>''')
+    return f'''<div class="fig-wrap">
+  <svg class="fig-svg" viewBox="0 0 1100 260" width="1100" height="260" role="img"
+       aria-labelledby="fd-t fd-d" preserveAspectRatio="xMidYMid meet">
+    <title id="fd-t">Success fee by transaction value</title>
+    <desc id="fd-d">The success fee tapers as the transaction grows: 5% up to S$5M, 4% from S$5M to S$10M, 3% from S$10M to S$20M, 2% from S$20M to S$50M, and 1% above S$50M. Minimum fee S$100,000, payable only on completion.</desc>
+    <line x1="40" y1="210" x2="1060" y2="210" stroke="#CBD5E1" stroke-width="2"/>
+    {"".join(bars)}
+  </svg>
+</div>'''
+
 def nav(active):
     items = [
         ("sell-your-business-singapore", "Sell Your Business"),
@@ -140,6 +237,15 @@ def shell(page):
 <meta property="og:description" content="{page["description"]}">
 <meta property="og:url" content="{BASE}/{page["slug"]}/">
 <meta property="og:locale" content="en_SG">
+<meta property="og:site_name" content="Business Broker In Singapore">
+<meta property="og:image" content="{BASE}/assets/og/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Business Broker In Singapore — confidential SME business sales, Singapore">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{page["title"]}">
+<meta name="twitter:description" content="{page["description"]}">
+<meta name="twitter:image" content="{BASE}/assets/og/og-image.png">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/assets/fonts/poppins-600-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/opensans-latin.woff2" as="font" type="font/woff2" crossorigin>
@@ -347,6 +453,8 @@ PAGES.append({
         <p><strong>To value a business in Singapore</strong>, take adjusted EBITDA — profit before interest, tax, depreciation and amortisation, normalised for owner's excess salary and one-off costs — and multiply it by a sector multiple, typically 2× to 9×. Asset-heavy or loss-making businesses are valued on assets, licences or strategic worth instead.</p>
       </div>
 
+      <div class="reveal">{valuation_diagram()}</div>
+
       <h2 class="reveal">Step 1 — Normalise the profit (adjusted EBITDA)</h2>
       <p class="reveal">Buyers don't buy your accounting profit; they buy the cash the business would generate under their ownership. A worked example:</p>
       <div class="table-wrap reveal">
@@ -439,6 +547,7 @@ PAGES.append({
       </div>
 
       <h2 class="reveal">Our fee schedule</h2>
+      <div class="reveal">{fee_diagram()}</div>
       <div class="table-wrap reveal">
         <table>
           <thead><tr><th scope="col">Transaction value</th><th scope="col">Success fee</th><th scope="col">Fee on a sale at the top of the band</th></tr></thead>
@@ -518,6 +627,7 @@ PAGES.append({
     "main": f'''
   <section>
     <div class="container">
+      <div class="reveal">{process_diagram(on_dark=False)}</div>
       <div class="timeline" style="max-width:820px">
         <div class="t-line"></div>
         <div class="t-step reveal" style="--i:0"><span class="dot">1</span><span class="t-meta">Weeks 1–2 · Confidential discussion</span><h3>Fit and goals</h3><p>A 30-minute conversation — WhatsApp, call, or coffee. Your goals, your timeline, a first sense of value. No documents required, no fee, no obligation. If selling now isn't right, we'll say so; some of the best outcomes start with “wait 18 months and fix these two things.”</p></div>
