@@ -13,6 +13,9 @@ Content on this site may be quoted with attribution to Business Broker In Singap
 - [Home](https://www.businessbrokerinsingapore.com/): What a business broker in Singapore does and how a confidential sale works.
 - [Sell Your Business](https://www.businessbrokerinsingapore.com/sell-your-business-singapore/): How to sell a business in Singapore confidentially — the process, what drives price, and who it suits.
 - [Business Valuation](https://www.businessbrokerinsingapore.com/business-valuation-singapore/): How Singapore SMEs are valued: adjusted EBITDA, sector multiples by industry, and a worked example.
+- [SME Valuation Multiples](https://www.businessbrokerinsingapore.com/singapore-sme-valuation-multiples/): Open data: EBITDA multiple ranges by sector for Singapore SMEs, updated quarterly, free to cite.
+- [Valuation Estimator](https://www.businessbrokerinsingapore.com/valuation-estimator/): Free estimator: applies sector multiples to your adjusted EBITDA for an indicative sale range.
+- [Exit Readiness](https://www.businessbrokerinsingapore.com/exit-readiness/): Eight-question quiz scoring how ready a business is to sell, and which gaps a buyer finds first.
 - [How It Works](https://www.businessbrokerinsingapore.com/how-it-works/): The seven stages of a Singapore business sale, with the timeline for each stage.
 - [Fees](https://www.businessbrokerinsingapore.com/fees/): What business brokers charge in Singapore, and this firm's published success-only fee schedule.
 - [Sell Your F&B Business](https://www.businessbrokerinsingapore.com/sell-your-fnb-business-singapore/): Selling an F&B business in Singapore: multiples, SFA licences, leases and confidentiality.

@@ -126,6 +126,104 @@ def service_schema(name, stype):
         "provider": {"@id": ORG_ID},
     }
 
+# Warm-lane capture endpoint (Brevo/MailerLite form action). While this is empty
+# every capture block degrades to the WhatsApp hot lane instead of rendering a
+# form that posts nowhere. Set it once here and rebuild to switch the lane on.
+EMAIL_ENDPOINT = ""
+
+SECTORS = [
+    ("fnb", "F&B / restaurant / food manufacturing", 2.5, 5),
+    ("manufacturing", "Manufacturing / engineering", 3, 6),
+    ("distribution", "Distribution / wholesale trade", 2.5, 5),
+    ("services", "Professional / B2B services", 3, 6),
+    ("logistics", "Logistics / transport", 3, 5.5),
+    ("construction", "Construction / M&E", 2, 4),
+    ("retail", "Retail / consumer", 2, 4),
+    ("ecommerce", "E-commerce / online", 2.5, 5.5),
+    ("healthcare", "Healthcare / education", 4, 7),
+    ("tech", "Software / technology", 4, 9),
+    ("other", "Other", 2.5, 5),
+]
+
+def capture_block(source, heading, blurb, wa_text):
+    """Warm lane if an endpoint is configured; hot lane (WhatsApp) if not."""
+    if not EMAIL_ENDPOINT:
+        return f'''<div class="capture capture-wa">
+          <h3>{heading}</h3>
+          <p>{blurb}</p>
+          <a class="btn btn-wa" data-track="wa-{source}" href="{wa_link(wa_text)}">{wa_icon()} Send it to me on WhatsApp</a>
+        </div>'''
+    return f'''<div class="capture">
+          <h3>{heading}</h3>
+          <p>{blurb}</p>
+          <form class="capture-form" action="{EMAIL_ENDPOINT}" method="POST" data-capture="{source}">
+            <input type="hidden" name="SOURCE" value="{source}">
+            <input type="hidden" name="SECTOR" value="" data-fill="sector">
+            <input type="hidden" name="DETAIL" value="" data-fill="detail">
+            <label class="sr-only" for="cap-email-{source}">Your email address</label>
+            <input id="cap-email-{source}" name="EMAIL" type="email" required autocomplete="email" placeholder="you@company.com">
+            <button class="btn btn-gold" type="submit">Email me the breakdown</button>
+          </form>
+          <p class="capture-note">One email with the breakdown, then a short series you can leave any time. No sharing, no calls unless you ask.</p>
+        </div>'''
+
+def estimator_block(note_link=True):
+    opts = "\n".join(
+        f'              <option value="{key}">{label.replace("&", "&amp;")}</option>'
+        for key, label, _lo, _hi in SECTORS
+    )
+    capture = capture_block(
+        "estimator",
+        "Want the full breakdown?",
+        "The multiples behind your range, what would move the number up, the value gaps buyers price down, and your realistic next options.",
+        "Hi, I used the valuation estimator and I'd like the full breakdown of what drives my number.",
+    )
+    note = ('<p class="calc-note">Indicative only. Actual value depends on growth, customer concentration, margins, '
+            'contracts and deal structure — a proper assessment looks at all of these. '
+            '<a href="/business-valuation-singapore/">How valuation really works →</a></p>') if note_link else ""
+    return f'''<form class="calc reveal" id="calc-form" novalidate>
+        <div class="calc-grid">
+          <div class="field">
+            <label for="calc-industry">Your industry</label>
+            <select id="calc-industry" required>
+              <option value="">Choose an industry…</option>
+{opts}
+            </select>
+          </div>
+          <div class="field">
+            <label for="calc-revenue">Annual revenue (S$)</label>
+            <input id="calc-revenue" type="number" inputmode="numeric" min="0" step="10000" placeholder="e.g. 5000000" required>
+            <p class="hint">Last full financial year.</p>
+          </div>
+          <div class="field">
+            <label for="calc-ebitda">Annual profit — adjusted EBITDA (S$)</label>
+            <input id="calc-ebitda" type="number" inputmode="numeric" min="0" step="10000" placeholder="e.g. 800000" required>
+            <p class="hint">Net profit + interest, tax, depreciation + your above-market salary.</p>
+          </div>
+          <div class="field">
+            <label for="calc-dependence">How involved are you day-to-day?</label>
+            <select id="calc-dependence">
+              <option value="med">Involved, but managers run operations</option>
+              <option value="high">The business depends heavily on me</option>
+              <option value="low">It runs without me</option>
+            </select>
+          </div>
+        </div>
+        <p class="calc-error" id="calc-error" role="alert"></p>
+        <div class="calc-actions">
+          <button class="btn btn-gold" type="submit">Show My Estimate</button>
+          <span style="font-size:0.9rem;color:var(--slate)">Nothing is stored or sent — the estimate appears right here.</span>
+        </div>
+        <div class="calc-result" id="calc-result" aria-live="polite">
+          <div class="range" id="calc-range">—</div>
+          <p class="basis" id="calc-basis"></p>
+          <a class="btn btn-wa" id="calc-wa" data-track="wa-estimator" href="https://wa.me/{WA}">{wa_icon()} Get a Real Assessment on WhatsApp</a>
+          <p style="font-size:0.88rem;color:#A3B1CC;margin:0.9rem 0 0">Sends your numbers to us on WhatsApp — confidential, no fee, no obligation.</p>
+          {capture}
+        </div>
+        {note}
+      </form>'''
+
 PROCESS_STAGES = [
     ("Weeks 1–2", "Discussion"),
     ("Weeks 2–6", "Valuation"),
@@ -229,6 +327,7 @@ def nav(active):
         ("business-valuation-singapore", "Valuation"),
         ("how-it-works", "How It Works"),
         ("fees", "Fees"),
+        ("exit-readiness", "Exit Readiness"),
         ("buy-a-business-singapore", "Buy a Business"),
     ]
     cur = ' aria-current="page"'
@@ -346,6 +445,14 @@ def shell(page):
           <li><a href="/fees/">Fees</a></li>
           <li><a href="/sell-your-fnb-business-singapore/">Sell an F&amp;B business</a></li>
           <li><a href="/faq/">Seller FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Free tools</h3>
+        <ul>
+          <li><a href="/valuation-estimator/">Valuation estimator</a></li>
+          <li><a href="/exit-readiness/">Exit-readiness quiz</a></li>
+          <li><a href="/singapore-sme-valuation-multiples/">SME valuation multiples</a></li>
         </ul>
       </div>
       <div>
@@ -473,7 +580,7 @@ PAGES.append({
     "lead": "Most profitable Singapore SMEs sell for 2–9× adjusted EBITDA, depending on the sector. Here's exactly how the arithmetic works — with real multiples by industry and a worked example a buyer's accountant would accept.",
     "schema": [],
     "hero_ctas": '''<div class="hero-ctas" style="margin-top:1.8rem">
-        <a class="btn btn-gold" href="/#valuation">Use the Free Estimator</a>
+        <a class="btn btn-gold" href="#estimator">Use the Free Estimator</a>
       </div>''',
     "main": f'''
   <section>
@@ -525,7 +632,18 @@ PAGES.append({
       <h2 class="reveal">Step 3 — Reality-check against the market</h2>
       <p class="reveal">A valuation is a hypothesis; the market is the test. Serious buyers benchmark against comparable transactions, and the final number also reflects deal structure — an all-cash completion prices differently from an earn-out. This is why a defensible range beats a single precise-sounding number.</p>
 
-      <p class="reveal mt-2"><a class="btn btn-gold" href="/#valuation">Get your instant estimate</a></p>
+    </div>
+  </section>
+
+  <section id="estimator" class="on-light">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow dark">Free · instant · no email required</span>
+        <h2>Apply this to your own numbers</h2>
+        <p class="lead">The same arithmetic as above, using the sector multiples in the table. It runs in your browser — nothing is stored or sent.</p>
+      </div>
+      {estimator_block(note_link=False)}
+      <p class="calc-note reveal">Indicative only. See <a href="/singapore-sme-valuation-multiples/">the full multiples table</a> or the <a href="/valuation-estimator/">standalone estimator</a>.</p>
     </div>
   </section>
 
@@ -939,6 +1057,322 @@ PAGES.append({
 })
 PAGES[-1]["schema"] = [faq_schema(_hub_all), breadcrumb_schema("FAQ", "faq")]
 
+# ---- Valuation estimator (own URL, for direct linking) ----
+faqs_est = [
+    ("How accurate is this estimate?",
+     "It is an indicative range, not a valuation. It applies a published sector multiple to the adjusted EBITDA you enter and adjusts for owner-dependence — the same arithmetic a buyer starts with. What it cannot see is your customer concentration, contract quality, growth trend, margin stability or deal structure, and those routinely move the final number by 30% in either direction."),
+    ("What should I enter for adjusted EBITDA?",
+     "Take net profit, add back interest, tax, depreciation and amortisation, then add the amount by which your own salary exceeds what a replacement manager would cost. Add back one-off costs that won't recur for a buyer. If you underpay yourself, the adjustment goes the other way — deduct the shortfall. If you're unsure, enter your best estimate; the range moves proportionally."),
+    ("Does the estimator store my financial figures?",
+     "No. The calculation runs entirely in your browser and nothing is transmitted when you press the button. Figures leave your device only if you choose to send them — by WhatsApp, or by asking for the emailed breakdown, both of which are your explicit action."),
+    ("Why does owner-dependence change the number?",
+     "Because a buyer is pricing what continues after you leave. A business that runs without you transfers cleanly and attracts more bidders, so it sits at the top of its sector range. One that depends heavily on the owner carries handover risk, and buyers discount for it — or shift more of the price into an earn-out. Reducing that dependence is usually the highest-return preparation work available."),
+]
+PAGES.append({
+    "slug": "valuation-estimator",
+    "crumb": "Valuation Estimator",
+    "title": "Business Valuation Estimator — Singapore SMEs",
+    "description": "Free instant estimate of what your Singapore business could sell for. Sector multiples applied to your adjusted EBITDA — no email required for the range.",
+    "h1": "What could your business sell for?",
+    "lead": "An indicative range in about ten seconds, using the same sector multiples a buyer would start from. Nothing is stored, and no email is required to see your number.",
+    "schema": [],
+    "hero_ctas": '''<div class="hero-ctas" style="margin-top:1.8rem">
+        <a class="btn btn-gold" href="#estimator">Start the estimate</a>
+      </div>''',
+    "main": f'''
+  <section id="estimator">
+    <div class="container prose" style="padding-bottom:0">
+      <div class="answer-first reveal">
+        <p><strong>To estimate what a Singapore business is worth</strong>, multiply adjusted EBITDA by the multiple its sector typically transacts at — roughly 2× to 9× — then adjust for how dependent the business is on its owner. The estimator below does exactly that, in your browser, and shows the range with no email gate.</p>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:1.5rem">
+    <div class="container">
+      {estimator_block(note_link=True)}
+    </div>
+  </section>
+
+  <section class="on-light">
+    <div class="container prose">
+      <h2 class="reveal">What the estimate can and can't see</h2>
+      <p class="reveal">The arithmetic is the easy part, and it is genuinely how a buyer opens. What separates an opening number from a completed price is everything the estimator has no way of knowing:</p>
+      <div class="grid-2 mt-2">
+        <div class="card reveal" style="--i:0"><h3>Customer concentration</h3><p>One customer above 30% of revenue is the single most common reason a good-looking multiple gets marked down in due diligence.</p></div>
+        <div class="card reveal" style="--i:1"><h3>Quality of earnings</h3><p>Three consistent years price differently from one strong year after two weak ones — even at identical EBITDA.</p></div>
+        <div class="card reveal" style="--i:2"><h3>Contracts and recurring revenue</h3><p>Committed, transferable revenue moves a business up within its sector band; project-by-project revenue holds it down.</p></div>
+        <div class="card reveal" style="--i:3"><h3>Deal structure</h3><p>All cash on completion, an earn-out, or deferred consideration are three different prices for the same business.</p></div>
+      </div>
+      <p class="reveal mt-2">See <a href="/business-valuation-singapore/">how valuation works in full</a>, or the <a href="/singapore-sme-valuation-multiples/">multiples table by sector</a> the estimator draws on.</p>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="container">
+      <div class="section-head reveal"><h2>Estimator questions, answered</h2></div>
+      <div class="reveal" style="max-width:820px">
+        {faq_html(faqs_est)}
+      </div>
+    </div>
+  </section>
+''',
+    "cta_h": "A number you can defend takes a conversation.",
+    "cta_p": "Send us the rough figures and you'll get a considered view — what the range really is, what's driving it, and what would raise it before you go to market.",
+    "cta_wa": "Hi, I used the valuation estimator and I'd like a considered view on what my business could sell for.",
+})
+PAGES[-1]["schema"] = [faq_schema(faqs_est), breadcrumb_schema("Valuation Estimator", "valuation-estimator"),
+                       service_schema("Business valuation estimate", "Business valuation")]
+
+# ---- Valuation multiples data asset (ungated, citable) ----
+MULTIPLES_UPDATED = "2026-08-28"
+MULTIPLES_REVIEW = "November 2026"
+
+def multiples_rows():
+    order = ["tech", "healthcare", "manufacturing", "services", "logistics",
+             "ecommerce", "fnb", "distribution", "construction", "retail"]
+    by_key = {k: (label, lo, hi) for k, label, lo, hi in SECTORS}
+    drivers = {
+        "tech": "Recurring licence or subscription revenue, gross margin, net revenue retention, IP ownership.",
+        "healthcare": "Licensing and accreditation, practitioner retention, patient or student recurrence, regulatory barriers to entry.",
+        "manufacturing": "Order book, plant condition and remaining useful life, customer concentration, certifications.",
+        "services": "Contracted vs project revenue, key-person dependence, staff retention, client tenure.",
+        "logistics": "Fleet age and ownership, contracted lanes, warehouse leases, customer diversification.",
+        "ecommerce": "Traffic sources and paid dependence, repeat purchase rate, platform concentration, brand ownership.",
+        "fnb": "SFA and liquor licences, lease tenure and rent trajectory, central kitchen capacity, multi-outlet consistency.",
+        "distribution": "Exclusive agency or distribution rights, supplier terms, stock turn, margin stability.",
+        "construction": "Order book quality, retention sums, licence grade (BCA), project margin consistency.",
+        "retail": "Lease tenure and location, foot traffic trend, stock turn, brand and online mix.",
+    }
+    return [(by_key[k][0].replace("&", "&amp;"), by_key[k][1], by_key[k][2], drivers[k]) for k in order]
+
+_mult_html = "\n".join(
+    f'            <tr><td>{label}</td><td><strong>{lo:g}× – {hi:g}×</strong></td><td>{drv}</td></tr>'
+    for label, lo, hi, drv in multiples_rows()
+)
+faqs_mult = [
+    ("What do these multiples apply to?",
+     "Adjusted EBITDA — earnings before interest, tax, depreciation and amortisation, normalised for the owner's above-market salary, one-off costs and any market-rate expenses the business currently avoids. Applying a multiple to unadjusted net profit, or to revenue, produces a materially different and usually misleading number."),
+    ("Where does this data come from?",
+     "The ranges reflect transactions and offers observed in the Singapore SME market in the S$2M–S$20M revenue band, cross-checked against published regional M&A benchmarks. They are practitioner ranges for owner-managed businesses, not public-company comparables — listed companies in the same sectors trade at higher multiples because of scale, liquidity and governance."),
+    ("Why is the range within each sector so wide?",
+     "Because the sector sets the band and the business sets the position within it. Two F&B groups with identical EBITDA can sit at 2.5× and at 5× depending on lease tenure, licence portfolio, owner-dependence and whether earnings are consistent across outlets. The drivers column lists what moves a business within its band."),
+    ("Can I cite this table?",
+     "Yes. It is published openly for that purpose. Please attribute it to Business Broker In Singapore, operated by The Funding Assembly Pte. Ltd., and link to this page. The table is reviewed quarterly and carries its last-updated date so you can cite a specific version."),
+]
+PAGES.append({
+    "slug": "singapore-sme-valuation-multiples",
+    "crumb": "SME Valuation Multiples",
+    "title": "Singapore SME Valuation Multiples by Sector (2026)",
+    "description": "EBITDA valuation multiples for Singapore SMEs by sector, with the drivers that move a business within its range. Updated quarterly, free to cite.",
+    "h1": "Singapore SME valuation multiples, by sector.",
+    "lead": "The adjusted-EBITDA multiple ranges Singapore SMEs actually transact at, what moves a business within its range, and how the figures are derived. Open data — cite it freely.",
+    "schema": [],
+    "hero_ctas": '''<div class="hero-ctas" style="margin-top:1.8rem">
+        <a class="btn btn-gold" href="/valuation-estimator/">Apply these to your business</a>
+      </div>''',
+    "main": f'''
+  <section>
+    <div class="container prose">
+      <div class="answer-first reveal">
+        <p><strong>Singapore SMEs typically sell for 2× to 9× adjusted EBITDA</strong>, depending on sector. Recurring-revenue businesses — software, healthcare, education — command 4×–9× because earnings are predictable. Project-based sectors such as construction and retail sit at 2×–4×. The table below gives the range for each sector and the drivers that decide where a business lands within it.</p>
+      </div>
+
+      <p class="reveal" style="color:var(--slate)"><strong>Last updated:</strong> 28 August 2026 · <strong>Next review:</strong> {MULTIPLES_REVIEW} · Free to cite with attribution to Business Broker In Singapore.</p>
+
+      <div class="table-wrap reveal">
+        <table>
+          <thead><tr><th scope="col">Sector</th><th scope="col">Adjusted EBITDA multiple</th><th scope="col">What moves a business within the range</th></tr></thead>
+          <tbody>
+{_mult_html}
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="reveal">How to use these figures</h2>
+      <p class="reveal">Take your adjusted EBITDA, apply the range for your sector, and treat the result as the opening band rather than a price. A business at the top of its band is typically one that runs without its owner, has diversified customers, holds transferable contracts or licences, and can show three consistent years. A business at the bottom usually has one or two of those working against it — each is fixable, and fixing them before going to market is worth more than negotiating harder once you're in it.</p>
+      <p class="reveal"><a href="/valuation-estimator/">Apply these multiples to your own figures →</a></p>
+
+      <h2 class="reveal">Methodology</h2>
+      <p class="reveal">Ranges are derived from transactions and offers observed in the Singapore SME market in the S$2M–S$20M revenue band, cross-checked against published regional M&amp;A benchmarks for comparable sectors and sizes. They describe owner-managed private companies, so they sit below the multiples listed companies trade at in the same sectors — scale, liquidity and governance are priced separately. Figures are reviewed quarterly; the review date above is when the next revision is due.</p>
+      <p class="reveal" style="color:var(--slate);font-size:0.95rem">These are practitioner ranges published for general guidance, not a valuation of any specific business and not financial advice.</p>
+    </div>
+  </section>
+
+  <section class="on-light" style="padding-top:0">
+    <div class="container">
+      <div class="section-head reveal"><h2>About this data</h2></div>
+      <div class="reveal" style="max-width:820px">
+        {faq_html(faqs_mult)}
+      </div>
+    </div>
+  </section>
+''',
+    "cta_h": "Where does your business sit in its range?",
+    "cta_p": "Send us the shape of the business — sector, revenue, rough EBITDA — and you'll get a straight view on where it lands and what would move it up.",
+    "cta_wa": "Hi, I looked at your valuation multiples table and I'd like a view on where my business sits.",
+})
+PAGES[-1]["schema"] = [
+    faq_schema(faqs_mult),
+    breadcrumb_schema("SME Valuation Multiples", "singapore-sme-valuation-multiples"),
+    {
+        "@type": "Dataset",
+        "@id": f"{BASE}/singapore-sme-valuation-multiples/#dataset",
+        "name": "Singapore SME valuation multiples by sector",
+        "description": "Adjusted EBITDA valuation multiple ranges for Singapore SMEs in the S$2M-S$20M revenue band, by sector, with the value drivers that determine position within each range.",
+        "url": f"{BASE}/singapore-sme-valuation-multiples/",
+        "license": "https://creativecommons.org/licenses/by/4.0/",
+        "isAccessibleForFree": True,
+        "dateModified": MULTIPLES_UPDATED,
+        "spatialCoverage": {"@type": "Place", "name": "Singapore"},
+        "creator": {"@id": ORG_ID},
+        "publisher": {"@id": ORG_ID},
+        "variableMeasured": [
+            {"@type": "PropertyValue", "name": "Sector"},
+            {"@type": "PropertyValue", "name": "Adjusted EBITDA multiple (low)", "unitText": "multiple"},
+            {"@type": "PropertyValue", "name": "Adjusted EBITDA multiple (high)", "unitText": "multiple"},
+        ],
+    },
+]
+
+# ---- Exit-readiness quiz ----
+QUIZ = [
+    ("owner", "If you stepped away for three months, what would happen?",
+     [("The business would run normally", 100),
+      ("It would cope, with some things waiting for me", 65),
+      ("Revenue would suffer within weeks", 30),
+      ("It would not function without me", 0)]),
+    ("records", "How would you describe your financial records?",
+     [("Audited or reviewed, three clean consistent years", 100),
+      ("Compiled accounts, reasonably tidy", 70),
+      ("Filed and compliant, but messy in places", 40),
+      ("Personal and business items are mixed together", 0)]),
+    ("customers", "What share of revenue comes from your largest customer?",
+     [("Under 10%", 100), ("10–25%", 70), ("25–40%", 35), ("Over 40%", 0)]),
+    ("transfer", "Would your leases, licences and key contracts transfer to a buyer?",
+     [("Yes — long tenure, transferable, checked", 100),
+      ("Mostly, though some need consent", 65),
+      ("Not sure — I haven't reviewed them", 30),
+      ("Several are short-dated or personal to me", 0)]),
+    ("management", "Who runs the business day to day below you?",
+     [("A management team that could run it alone", 100),
+      ("One capable second-in-command", 70),
+      ("Supervisors who need direction from me", 35),
+      ("Nobody — it's me", 0)]),
+    ("growth", "What has revenue done over the last three years?",
+     [("Grown consistently", 100), ("Flat but stable and profitable", 65),
+      ("Up and down", 35), ("Declining", 10)]),
+    ("reason", "What's driving your thinking about a sale?",
+     [("Retirement or succession, planned", 100),
+      ("An unsolicited approach from a buyer", 60),
+      ("Ready for the next chapter", 75),
+      ("Fatigue, health or partner pressure", 40)]),
+    ("timeline", "When would you ideally complete a sale?",
+     [("Within 12 months", 100), ("One to two years", 80),
+      ("Two to three years", 55), ("No fixed timeline", 40)]),
+]
+
+def quiz_html():
+    out = []
+    for i, (key, question, answers) in enumerate(QUIZ):
+        opts = "\n".join(
+            f'''            <label class="quiz-opt"><input type="radio" name="q-{key}" value="{score}"{' required' if j == 0 else ''}><span>{text}</span></label>'''
+            for j, (text, score) in enumerate(answers)
+        )
+        out.append(f'''<fieldset class="quiz-q reveal" data-q="{key}">
+          <legend><span class="quiz-n">{i + 1}</span>{question}</legend>
+{opts}
+        </fieldset>''')
+    return "\n".join(out)
+
+faqs_quiz = [
+    ("What does the score actually measure?",
+     "Saleability, not value. It weighs the eight things buyers and their advisors examine first — owner-dependence, quality of financial records, customer concentration, transferability of leases and licences, management depth, growth trend, your reason for selling and your timeline. A high score means a sale process would run cleanly and survive due diligence; it does not by itself mean a high price."),
+    ("Is a low score a reason not to sell?",
+     "No — it's a list of what to fix first, and most of it is fixable in 6–18 months. The businesses that struggle in a sale are rarely bad businesses; they are good businesses whose records, customer mix or owner-dependence were never prepared for an outside buyer to inspect. Knowing which of those applies to you before going to market is precisely the point."),
+    ("How long does the quiz take?",
+     "About two minutes — eight questions, one screen. Your score appears immediately on this page. Nothing is submitted unless you choose to ask for the detailed gap report, and your answers stay in your browser."),
+    ("What's in the detailed gap report?",
+     "Your score broken down by the eight areas, what each weak area costs in a real sale, the specific work that closes each gap, and a realistic sequence for doing it in the time you have before going to market."),
+]
+PAGES.append({
+    "slug": "exit-readiness",
+    "crumb": "Exit Readiness",
+    "title": "Exit Readiness Quiz — Is Your Business Ready to Sell?",
+    "description": "Eight questions, two minutes: score how ready your Singapore business is to sell, and see exactly which gaps would cost you in a sale.",
+    "h1": "Is your business ready to sell?",
+    "lead": "Eight questions, about two minutes. You'll get a readiness score and, more usefully, a clear view of which gaps a buyer would find first — while there's still time to close them.",
+    "schema": [],
+    "hero_ctas": '''<div class="hero-ctas" style="margin-top:1.8rem">
+        <a class="btn btn-gold" href="#quiz">Start the quiz</a>
+      </div>''',
+    "main": f'''
+  <section id="quiz">
+    <div class="container prose" style="padding-bottom:0">
+      <div class="answer-first reveal">
+        <p><strong>A business is ready to sell</strong> when it runs without its owner, has three clean years of financial records, no single customer dominating revenue, transferable leases and licences, and a second layer of management. The eight questions below score your business against exactly those criteria — the ones a buyer's advisors examine first.</p>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:1.5rem">
+    <div class="container">
+      <form class="quiz" id="quiz-form" novalidate style="max-width:820px">
+        {quiz_html()}
+        <p class="calc-error" id="quiz-error" role="alert"></p>
+        <div class="calc-actions">
+          <button class="btn btn-gold" type="submit">Show My Readiness Score</button>
+          <span style="font-size:0.9rem;color:var(--slate)">Answers stay in your browser — nothing is sent.</span>
+        </div>
+
+        <div class="calc-result quiz-result" id="quiz-result" aria-live="polite">
+          <div class="quiz-score"><span id="quiz-score-num">0</span><span class="quiz-score-of">/100</span></div>
+          <div class="quiz-meter" aria-hidden="true"><div class="quiz-meter-fill" id="quiz-meter-fill"></div></div>
+          <h3 id="quiz-band">—</h3>
+          <p class="basis" id="quiz-verdict"></p>
+          <div id="quiz-gaps" class="quiz-gaps"></div>
+          <a class="btn btn-wa" id="quiz-wa" data-track="wa-quiz" href="https://wa.me/{WA}">{wa_icon()} Talk it through, confidentially</a>
+          {capture_block("quiz", "Get the detailed gap report",
+                         "Your score broken down by area, what each gap costs in a real sale, and the sequence to close them before you go to market.",
+                         "Hi, I did the exit-readiness quiz and I'd like the detailed gap report.")}
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="on-light">
+    <div class="container prose">
+      <h2 class="reveal">What the eight areas cost you if ignored</h2>
+      <p class="reveal">Every one of these shows up in due diligence whether or not you prepared for it. The difference is whether you fix it on your timetable, or concede on price on the buyer's:</p>
+      <ul class="reveal">
+        <li><strong>Owner-dependence</strong> — the most common cause of earn-outs replacing cash at completion.</li>
+        <li><strong>Financial records</strong> — messy books are the single biggest reason deals collapse in due diligence.</li>
+        <li><strong>Customer concentration</strong> — one customer above 40% of revenue reprices the whole business.</li>
+        <li><strong>Leases and licences</strong> — a short-dated lease or a non-transferable licence can end a deal outright.</li>
+        <li><strong>Management depth</strong> — a capable second tier is what convinces a buyer the business survives handover.</li>
+        <li><strong>Growth trend</strong> — buyers pay for trajectory; a declining year mid-process invites a re-trade.</li>
+        <li><strong>Reason for selling</strong> — a planned exit negotiates from strength; a forced one rarely does.</li>
+        <li><strong>Timeline</strong> — time is the cheapest thing you can spend on price. Runway is leverage.</li>
+      </ul>
+      <p class="reveal">See <a href="/how-it-works/">the seven-stage process</a>, or estimate <a href="/valuation-estimator/">what your business could sell for</a>.</p>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="container">
+      <div class="section-head reveal"><h2>About the readiness score</h2></div>
+      <div class="reveal" style="max-width:820px">
+        {faq_html(faqs_quiz)}
+      </div>
+    </div>
+  </section>
+''',
+    "cta_h": "Whatever your score, the next step is the same.",
+    "cta_p": "One confidential conversation about where the business actually is and what's worth fixing first. No fee, no obligation — and if the honest answer is “wait eighteen months”, we'll say so.",
+    "cta_wa": "Hi, I did the exit-readiness quiz and I'd like to talk through the result.",
+})
+PAGES[-1]["schema"] = [faq_schema(faqs_quiz), breadcrumb_schema("Exit Readiness", "exit-readiness")]
+
 # ---- About ----
 PAGES.append({
     "slug": "about",
@@ -1015,8 +1449,12 @@ LLMS_SUMMARY = {
     "faq": "Answers to what owners ask before selling: tax, timing, confidentiality, partners, foreign buyers.",
     "contact": "How to start a confidential conversation about selling or buying a Singapore business.",
     "about": "Who operates this site: The Funding Assembly Pte. Ltd., UEN 202443830Z, and what the firm does.",
+    "valuation-estimator": "Free estimator: applies sector multiples to your adjusted EBITDA for an indicative sale range.",
+    "exit-readiness": "Eight-question quiz scoring how ready a business is to sell, and which gaps a buyer finds first.",
+    "singapore-sme-valuation-multiples": "Open data: EBITDA multiple ranges by sector for Singapore SMEs, updated quarterly, free to cite.",
 }
-ORDER = ["sell-your-business-singapore", "business-valuation-singapore", "how-it-works", "fees",
+ORDER = ["sell-your-business-singapore", "business-valuation-singapore", "singapore-sme-valuation-multiples",
+         "valuation-estimator", "exit-readiness", "how-it-works", "fees",
          "sell-your-fnb-business-singapore", "buy-a-business-singapore", "faq", "about", "contact"]
 lines = [
     "# Business Broker In Singapore",
@@ -1077,6 +1515,9 @@ SITEMAP = [("", "1.0", ["index.html"])] + [
     (slug, prio, ["build_pages.py", f"{slug}/index.html"]) for slug, prio in [
         ("sell-your-business-singapore", "0.9"),
         ("business-valuation-singapore", "0.9"),
+        ("singapore-sme-valuation-multiples", "0.9"),
+        ("valuation-estimator", "0.8"),
+        ("exit-readiness", "0.8"),
         ("fees", "0.8"),
         ("how-it-works", "0.8"),
         ("sell-your-fnb-business-singapore", "0.8"),

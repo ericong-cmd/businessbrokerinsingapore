@@ -150,6 +150,11 @@ section { padding: 4.5rem 0; }
   color: var(--white);
   text-decoration: none;
 }
+/* Keep the header a single row now that the nav carries six items. */
+@media (min-width: 1180px) {
+  .brand { white-space: nowrap; }
+  .nav-cta { white-space: nowrap; }
+}
 .brand .brand-sub {
   display: block;
   font-family: var(--sans);
@@ -159,11 +164,12 @@ section { padding: 4.5rem 0; }
   text-transform: uppercase;
   color: var(--gold-soft);
 }
-.nav-links { display: none; list-style: none; gap: 1.6rem; align-items: center; }
-.nav-links a { color: #CBD5E1; text-decoration: none; font-size: 0.98rem; font-weight: 500; transition: color 0.15s; }
+.nav-links { display: none; list-style: none; gap: 1.15rem; align-items: center; }
+.nav-links a { color: #CBD5E1; text-decoration: none; font-size: 0.94rem; font-weight: 500; white-space: nowrap; transition: color 0.15s; }
+@media (min-width: 1320px) { .nav-links { gap: 1.5rem; } .nav-links a { font-size: 0.98rem; } }
 .nav-links a:hover, .nav-links a[aria-current="page"] { color: var(--gold-soft); }
 .nav-cta { display: none; }
-@media (min-width: 1000px) {
+@media (min-width: 1180px) {
   .nav-links { display: flex; }
   .nav-cta { display: inline-flex; min-height: 44px; padding: 0.5rem 1.2rem; font-size: 0.95rem; }
 }
@@ -178,7 +184,7 @@ section { padding: 4.5rem 0; }
   cursor: pointer;
   color: var(--white);
 }
-@media (min-width: 1000px) { .menu-btn { display: none; } }
+@media (min-width: 1180px) { .menu-btn { display: none; } }
 .mobile-nav { display: none; background: var(--navy-deep); border-top: 1px solid rgba(255,255,255,0.08); }
 .mobile-nav.open { display: block; }
 .mobile-nav a {
@@ -438,7 +444,10 @@ td strong { color: var(--navy); }
 .site-footer { background: var(--navy-deep); color: #A3B1CC; padding: 3.5rem 0 6.5rem; font-size: 0.95rem; }
 @media (min-width: 900px) { .site-footer { padding-bottom: 3.5rem; } }
 .footer-grid { display: grid; gap: 2rem; }
-@media (min-width: 800px) { .footer-grid { grid-template-columns: 2fr 1fr 1fr; } }
+@media (min-width: 800px) { .footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr; } }
+.footer-grid > div { min-width: 0; }
+.footer-grid ul { list-style: none; padding: 0; }
+.footer-grid a { overflow-wrap: anywhere; }
 .site-footer h3 { color: var(--white); font-size: 1.05rem; margin-bottom: 0.8rem; font-family: var(--sans); font-weight: 600; }
 .site-footer ul { list-style: none; }
 .site-footer li { margin-bottom: 0.5rem; }
@@ -544,3 +553,78 @@ td strong { color: var(--navy); }
 .section-navy .fig-wrap { margin: 2.4rem 0 0.6rem; }
 .footer-bottom .entity-line { margin-bottom: 0.6rem; color: #A9B7D2; }
 .footer-bottom .entity-line a { color: #C9D5EA; text-decoration: underline; }
+
+/* ---------- Warm-lane capture ---------- */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.capture {
+  margin-top: 1.6rem; padding-top: 1.5rem;
+  border-top: 1px solid rgba(255,255,255,0.16);
+}
+.capture h3 { color: var(--gold-soft); font-size: 1.1rem; margin-bottom: 0.4rem; }
+.capture p { color: #B8C4DC; font-size: 0.95rem; margin-bottom: 1rem; }
+.capture-form { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+.capture-form input[type="email"] {
+  flex: 1 1 260px; min-width: 0; padding: 0.85rem 1rem;
+  border: 1px solid rgba(255,255,255,0.25); border-radius: 10px;
+  background: rgba(255,255,255,0.07); color: var(--white);
+  font-family: var(--sans); font-size: 1rem;
+}
+.capture-form input[type="email"]::placeholder { color: #8FA0C0; }
+.capture-form input[type="email"]:focus {
+  outline: 3px solid rgba(245, 158, 11, 0.45); border-color: var(--gold-soft);
+}
+.capture-note { color: #8FA0C0; font-size: 0.85rem; margin: 0.8rem 0 0; }
+
+/* ---------- Exit-readiness quiz ---------- */
+.quiz {
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: calc(var(--radius) + 4px); box-shadow: var(--shadow-lg);
+  padding: 2rem 1.5rem;
+}
+@media (min-width: 900px) { .quiz { padding: 2.8rem; } }
+.quiz-q { border: 0; padding: 0; margin: 0 0 2rem; }
+.quiz-q legend {
+  display: flex; gap: 0.7rem; align-items: baseline;
+  font-family: var(--display); font-weight: 600; font-size: 1.08rem;
+  color: var(--navy); margin-bottom: 0.9rem; padding: 0;
+}
+.quiz-n {
+  flex: 0 0 auto; width: 1.7rem; height: 1.7rem; border-radius: 50%;
+  background: var(--navy); color: var(--white); font-size: 0.85rem;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.quiz-opt {
+  display: flex; gap: 0.7rem; align-items: flex-start;
+  padding: 0.75rem 0.9rem; margin-bottom: 0.5rem;
+  border: 1px solid var(--line); border-radius: 10px;
+  cursor: pointer; transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+}
+.quiz-opt:hover { border-color: var(--gold); background: #FFFBF5; }
+.quiz-opt input { margin-top: 0.25rem; accent-color: var(--gold); flex: 0 0 auto; }
+.quiz-opt:focus-within { outline: 3px solid rgba(180, 83, 9, 0.35); }
+.quiz-opt span { color: var(--ink); }
+.quiz-score { font-family: var(--display); font-weight: 700; line-height: 1; }
+.quiz-score #quiz-score-num { font-size: 3.4rem; color: var(--gold-soft); }
+.quiz-score-of { font-size: 1.4rem; color: #8FA0C0; margin-left: 0.2rem; }
+.quiz-meter {
+  height: 8px; border-radius: 4px; background: rgba(255,255,255,0.15);
+  margin: 1rem 0 1.2rem; overflow: hidden;
+}
+.quiz-meter-fill {
+  height: 100%; width: 0; border-radius: 4px; background: var(--gold-soft);
+  transition: width 0.9s var(--ease);
+}
+.quiz-result h3 { color: var(--white); font-size: 1.35rem; margin-bottom: 0.4rem; }
+.quiz-gaps { margin: 1.3rem 0; }
+.quiz-gaps h4 {
+  color: var(--gold-soft); font-family: var(--display); font-size: 1rem;
+  margin-bottom: 0.6rem;
+}
+.quiz-gaps ul { margin: 0; padding-left: 1.2rem; }
+.quiz-gaps li { color: #C9D5EA; font-size: 0.95rem; margin-bottom: 0.6rem; }
+.quiz-gaps strong { color: var(--white); }
+.quiz-gaps p { color: #C9D5EA; font-size: 0.95rem; }
+@media (prefers-reduced-motion: reduce) { .quiz-meter-fill { transition: none; } }
