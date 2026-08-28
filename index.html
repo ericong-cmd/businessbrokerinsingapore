@@ -22,21 +22,41 @@
   "@graph": [
     {
       "@type": "ProfessionalService",
-      "@id": "https://www.businessbrokerinsingapore.com/#org",
+      "@id": "https://www.businessbrokerinsingapore.com/#organization",
       "name": "Business Broker In Singapore",
       "url": "https://www.businessbrokerinsingapore.com/",
-      "description": "Confidential sell-side business brokerage for Singapore SME owners. Success-only fees, NDA-protected marketing, buyers screened for financial capability before disclosure.",
+      "description": "Confidential sell-side M&A advisory and business brokerage for Singapore SMEs with S$2M–S$20M revenue. Zero upfront fees, success-only commission.",
       "areaServed": { "@type": "Country", "name": "Singapore" },
-      "knowsAbout": ["business brokerage", "mergers and acquisitions", "business valuation", "business succession", "SME exit planning"],
+      "knowsAbout": ["Business sales", "SME M&A", "Business valuation", "Succession planning"],
       "priceRange": "Success fee 1%–5% of sale price, no upfront fees",
-      "telephone": "+65 8951 8821"
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "sales",
+        "telephone": "+65 8951 8821",
+        "availableLanguage": ["en"]
+      },
+      "sameAs": ["https://thefundingassembly.com"],
+      "parentOrganization": {
+        "@type": "Organization",
+        "name": "The Funding Assembly",
+        "legalName": "THE FUNDING ASSEMBLY PTE. LTD.",
+        "url": "https://thefundingassembly.com",
+        "identifier": { "@type": "PropertyValue", "propertyID": "UEN", "value": "202443830Z" },
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "2 Leng Kee Road, #02-06 Thye Hong Centre",
+          "postalCode": "159086",
+          "addressCountry": "SG"
+        }
+      }
     },
     {
       "@type": "WebSite",
       "@id": "https://www.businessbrokerinsingapore.com/#website",
       "url": "https://www.businessbrokerinsingapore.com/",
       "name": "Business Broker In Singapore",
-      "publisher": { "@id": "https://www.businessbrokerinsingapore.com/#org" }
+      "publisher": { "@id": "https://www.businessbrokerinsingapore.com/#organization" },
+      "inLanguage": "en-SG"
     },
     {
       "@type": "FAQPage",
@@ -44,22 +64,27 @@
         {
           "@type": "Question",
           "name": "How much does a business broker charge in Singapore?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Most Singapore business brokers charge a success fee of 5–10% of the final sale price, payable only when the business sells. Our fees are tiered from 5% on transactions up to S$5M down to 1% above S$50M, with zero upfront fees — you pay nothing unless your business is sold." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Most Singapore business brokers charge a success fee of 5–10% of the final sale price, payable only when the business sells. Our schedule is tiered from 5% (up to S$5M) down to 1% (above S$50M), with a S$100,000 minimum and zero upfront fees." }
         },
         {
           "@type": "Question",
-          "name": "How do I sell my business without staff or customers finding out?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Your business is marketed with a no-name profile — industry, revenue band and strengths only. Buyers are screened for intent and financial capability, then sign an NDA before your company's name is disclosed. You approve every introduction, and disclosure happens in stages you control." }
+          "name": "Will anyone find out my business is for sale?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Not unless you choose to tell them. Marketing is no-name, buyers sign an NDA before your identity is revealed, and you personally approve every introduction. Staff, customers and suppliers typically learn of the sale only after completion, as part of a planned handover." }
         },
         {
           "@type": "Question",
           "name": "How long does it take to sell a business in Singapore?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Typically 6–12 months from engagement to completion. A structured process averages around 6–8 months: one to two months of preparation and valuation, two to four months of confidential buyer marketing and negotiation, and two to three months of due diligence and legal completion." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Typically 6–12 months from engagement to completion; a structured process averages six to eight. Preparation and valuation take one to two months, buyer marketing and negotiation two to four, and due diligence plus legal completion two to three." }
         },
         {
           "@type": "Question",
-          "name": "How much is my business worth?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Most profitable Singapore SMEs sell for a multiple of adjusted EBITDA — typically 2x to 9x depending on industry, size, growth and owner-dependence. A business earning S$500,000 adjusted EBITDA in a 3–4x sector would be worth roughly S$1.5M–S$2M. Use the free estimator on this page for an indicative range." }
+          "name": "What happens on the first call?",
+          "acceptedAnswer": { "@type": "Answer", "text": "A 30-minute confidential conversation about your business, your goals and your timeline — no documents needed, no fee, no obligation, and you stay anonymous until you decide otherwise. Many owners bring their spouse or an adult son or daughter to the call; that's welcome." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is my business too small — or too big — for this?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Our sweet spot is businesses with S$2M–S$20M annual revenue, though larger mandates are considered. If your business is smaller, message us anyway — we'll point you honestly to the right resources or marketplaces rather than waste your time." }
         }
       ]
     }

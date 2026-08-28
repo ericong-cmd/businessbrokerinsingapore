@@ -47,6 +47,59 @@ def breadcrumb_schema(title, path):
         ],
     }
 
+ORG_ID = BASE + "/#organization"
+
+def org_schema():
+    return {
+        "@type": "ProfessionalService",
+        "@id": ORG_ID,
+        "name": "Business Broker In Singapore",
+        "url": BASE + "/",
+        "description": "Confidential sell-side M&A advisory and business brokerage for Singapore SMEs with S$2M–S$20M revenue. Zero upfront fees, success-only commission.",
+        "areaServed": {"@type": "Country", "name": "Singapore"},
+        "knowsAbout": ["Business sales", "SME M&A", "Business valuation", "Succession planning"],
+        "priceRange": "Success fee 1%–5% of sale price, no upfront fees",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "telephone": "+65 8951 8821",
+            "availableLanguage": ["en"],
+        },
+        "sameAs": ["https://thefundingassembly.com"],
+        "parentOrganization": {
+            "@type": "Organization",
+            "name": "The Funding Assembly",
+            "legalName": "THE FUNDING ASSEMBLY PTE. LTD.",
+            "url": "https://thefundingassembly.com",
+            "identifier": {"@type": "PropertyValue", "propertyID": "UEN", "value": "202443830Z"},
+            "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "2 Leng Kee Road, #02-06 Thye Hong Centre",
+                "postalCode": "159086",
+                "addressCountry": "SG",
+            },
+        },
+    }
+
+def website_schema():
+    return {
+        "@type": "WebSite",
+        "@id": BASE + "/#website",
+        "url": BASE + "/",
+        "name": "Business Broker In Singapore",
+        "publisher": {"@id": ORG_ID},
+        "inLanguage": "en-SG",
+    }
+
+def service_schema(name, stype):
+    return {
+        "@type": "Service",
+        "name": name,
+        "serviceType": stype,
+        "areaServed": {"@type": "Country", "name": "Singapore"},
+        "provider": {"@id": ORG_ID},
+    }
+
 def nav(active):
     items = [
         ("sell-your-business-singapore", "Sell Your Business"),
@@ -68,7 +121,8 @@ def nav(active):
 
 def shell(page):
     links, mlinks = nav(page["slug"])
-    schema = {"@context": "https://schema.org", "@graph": page["schema"]}
+    schema = {"@context": "https://schema.org",
+              "@graph": [org_schema(), website_schema()] + page["schema"]}
     hero_ctas = page.get("hero_ctas", f'''<div class="hero-ctas" style="margin-top:1.8rem">
         <a class="btn btn-wa" href="{wa_link("Hi, I'd like a confidential chat about selling my business.")}">{wa_icon()} WhatsApp — Confidential</a>
         <a class="btn btn-outline" href="/#valuation">Free Valuation Estimate</a>
@@ -255,7 +309,8 @@ PAGES.append({
 ''',
     "cta_wa": "Hi, I'm thinking about selling my business and would like a confidential conversation.",
 })
-PAGES[-1]["schema"] = [faq_schema(faqs_sell), breadcrumb_schema("Sell Your Business", "sell-your-business-singapore")]
+PAGES[-1]["schema"] = [faq_schema(faqs_sell), breadcrumb_schema("Sell Your Business", "sell-your-business-singapore"),
+                       service_schema("Sell your business in Singapore", "Sell-side business brokerage")]
 
 # ---- Business Valuation ----
 faqs_val = [
@@ -350,7 +405,8 @@ PAGES.append({
     "cta_p": "Send us your rough figures on WhatsApp and get a considered view — what the range is, what's driving it, and what would raise it. Confidential, no fee, no obligation.",
     "cta_wa": "Hi, I'd like a confidential view on what my business might be worth.",
 })
-PAGES[-1]["schema"] = [faq_schema(faqs_val), breadcrumb_schema("Business Valuation", "business-valuation-singapore")]
+PAGES[-1]["schema"] = [faq_schema(faqs_val), breadcrumb_schema("Business Valuation", "business-valuation-singapore"),
+                       service_schema("Business valuation in Singapore", "Business valuation")]
 
 # ---- Fees ----
 faqs_fees = [
@@ -548,7 +604,8 @@ PAGES.append({
     "cta_p": "Tell us the shape of the business on WhatsApp — sector, outlets, rough revenue. You'll get a straight view on value and buyer appetite. Nobody else hears about it.",
     "cta_wa": "Hi, I own an F&B business in Singapore and I'm exploring a confidential sale.",
 })
-PAGES[-1]["schema"] = [faq_schema(faqs_fnb), breadcrumb_schema("Sell Your F&B Business", "sell-your-fnb-business-singapore")]
+PAGES[-1]["schema"] = [faq_schema(faqs_fnb), breadcrumb_schema("Sell Your F&B Business", "sell-your-fnb-business-singapore"),
+                       service_schema("Sell an F&B business in Singapore", "Sell-side business brokerage for F&B businesses")]
 
 # ---- Buy a Business ----
 faqs_buy = [
@@ -604,7 +661,8 @@ PAGES.append({
     "cta_p": "Sector, size, budget — one WhatsApp message registers your criteria for matching against current and future mandates.",
     "cta_wa": "Hi, I'm interested in acquiring a business in Singapore. My criteria: [sector / size / budget]",
 })
-PAGES[-1]["schema"] = [faq_schema(faqs_buy), breadcrumb_schema("Buy a Business", "buy-a-business-singapore")]
+PAGES[-1]["schema"] = [faq_schema(faqs_buy), breadcrumb_schema("Buy a Business", "buy-a-business-singapore"),
+                       service_schema("Buy a business in Singapore", "Business acquisition deal flow for registered buyers")]
 
 # ---- Contact ----
 PAGES.append({
