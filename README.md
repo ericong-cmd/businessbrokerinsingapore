@@ -99,5 +99,5 @@ DNS at the registrar:
 - The valuation estimator's sector multiples live in
   `assets/js/main.js` (`MULTIPLES`) and mirror the table on
   `/business-valuation-singapore/` — keep the two in sync.
-- WhatsApp number is `+65 8951 8821`, appearing in `wa.me` links across
+- WhatsApp number is `+65 9093 7293`, appearing in `wa.me` links across
   all pages and in `assets/js/main.js` (`WA_NUMBER`).

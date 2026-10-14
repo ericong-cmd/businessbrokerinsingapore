@@ -18,7 +18,7 @@
 const RESEND = 'https://api.resend.com';
 const DEFAULT_FROM = 'Business Broker In Singapore <hello@businessbrokerinsingapore.com>';
 const REPLY_TO = 'businessbrokerinsingapore@thefundingassembly.com';
-const WA = 'https://wa.me/6589518821';
+const WA = 'https://wa.me/6590937293';
 
 const SOURCES = {
   estimator: {
@@ -66,7 +66,7 @@ function buildEmail(kind, detail) {
       '<ul style="padding-left:20px;margin:0 0 18px">' + items + '</ul>' +
       '<p style="margin:0 0 18px">' + esc(t.next) + '</p>' +
       '<p style="margin:0 0 18px">If it would help to talk any of this through, reply to this email or message us on WhatsApp at ' +
-        '<a href="' + WA + '" style="color:#B45309">+65 8951 8821</a>. Confidential, no fee, no obligation.</p>' +
+        '<a href="' + WA + '" style="color:#B45309">+65 9093 7293</a>. Confidential, no fee, no obligation.</p>' +
       '<hr style="border:0;border-top:1px solid #CBD5E1;margin:26px 0">' +
       '<p style="margin:0;font-size:13px;color:#64748B">' +
         'Business Broker In Singapore is operated by The Funding Assembly Pte. Ltd. (UEN 202443830Z), ' +
